@@ -1,0 +1,235 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Square Fractal Space</title>
+	<script src="cell.js"></script>
+	<style>
+
+body {
+	margin: 0;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+.mouse-behavior-scroll {
+	cursor: -webkit-grab;
+	cursor: -moz-grab;
+	cursor: -ms-grab;
+	cursor: -o-grab;
+	cursor: grab;
+}
+
+.mouse-behavior-scrolling {
+	cursor: -webkit-grabbing;
+	cursor: -moz-grabbing;
+	cursor: -ms-grabbing;
+	cursor: -o-grabbing;
+	cursor: grabbing;
+}
+
+	</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+var canvas = document.getElementById("canvas");
+var ctx;
+var canvasWidth, canvasHeight;
+
+function initCanvas(e) {
+	canvasWidth = canvas.width = canvas.parentNode.offsetWidth;
+	canvasHeight = canvas.height = canvas.parentNode.offsetHeight;
+	ctx = canvas.getContext("2d");
+	ctx.translate(0.5, 0.5);
+
+	ctx.strokeStyle = "#000";
+	ctx.fillStyle = "brown";
+
+	redraw();
+}
+window.addEventListener("resize", initCanvas, false);
+
+// a rect intersects the viewport
+function rectInView(x, y, w, h) {
+	return x < canvasWidth && y < canvasHeight
+		&& x + w > 0 && y + h > 0;
+}
+
+// a rect contains every point in the viewport
+function rectContainsView(x, y, w, h) {
+	return x < 0 && y < 0
+		&& x + w > canvasWidth && y + h > canvasHeight;
+}
+
+// These 4 variables describe the position of the fractal in the viewport.
+var baseCell = new Cell(false);
+var x = 192;
+var y = 192;
+var s = 256;
+
+// Set the base cell and its position in the viewport
+function setBase(cell, coords) {
+	baseCell = cell;
+	x = coords[0];
+	y = coords[1];
+	s = coords[2];
+}
+
+// Change the base cell if it is not a good base cell for tbe current position.
+// The base cell should be the closest ancestor cell that contains the
+// viewport.
+// 
+function recalculateBase() {
+	// walk down
+	var inView = baseCell.getViewSituation([x, y, s]);
+	if (!inView.middle) {
+		// narrow down
+		if (inView.first) {
+			setBase(baseCell.getChildCells()[0],
+				baseCell.getChildCoords(0, x, y, s));
+			recalculateBase();
+		} else if (inView.second) {
+			setBase(baseCell.getChildCells()[1],
+				baseCell.getChildCoords(1, x, y, s));
+			recalculateBase();
+		} else {
+			stopped = true;
+			//factor = 1/factor;
+			console.log('Lost!');
+		}
+	} else if (!inView.first && !inView.second) {
+		// zoomed completely into one cell's image.
+		// zoom back out.
+		factor = 1/1.05;
+	}
+
+	// walk up
+	while (baseCell.parent != null && !baseCell.containsView(x, y, s)) {
+		setBase(baseCell.parent, baseCell.getParentCoords(x, y, s));
+	}
+}
+
+function redraw() {
+	ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+	recalculateBase();
+	baseCell.drawAll(ctx, x, y, s);
+	if (baseCell.parent == null) {
+		baseCell.drawOuterBorder(ctx, x, y, s);
+	}
+}
+
+/*
+function zoomToPoint(pointX, pointY, factor) {
+	s *= factor;
+	x = pointX + factor * (x - pointX);
+	y = pointY + factor * (y - pointY);
+	redraw();
+}
+*/
+
+initCanvas();
+
+// Given points relative to the canvas, get
+// the cell they are in, and the coords of the point relative to the cell.
+function getPointCoordsInCell(canvasX, canvasY) {
+	return baseCell.getCoordsInDescendents(
+		(canvasX - x) / s,
+		(canvasY - y) / s);
+}
+
+
+// Mouse handling
+
+// base class blah blah blah
+function MouseBehavior() {}
+MouseBehavior.prototype = {
+	canvasClass: "",
+	onMouseDown: function (x, y) {},
+	onMouseMove: function (x, y) {},
+	onMouseUp: function (x, y) {}
+};
+
+function DefaultBehavior() {}
+DefaultBehavior.prototype = {
+	canvasClass: 'mouse-behavior-scroll',
+	onMouseDown: function (x, y) {
+		setMouseBehavior(new ScrollBehavior(x, y));
+	}
+};
+
+function ScrollBehavior(canvasX, canvasY) {
+	this.canvasStartX = canvasX;
+	this.canvasStartY = canvasY;
+	this.startBaseCell = baseCell;
+	this.startBaseX = x;
+	this.startBaseY = y;
+	this.startBaseSize = s;
+	var c = getPointCoordsInCell(canvasX, canvasY);
+	if (!c) {
+		var f = [0, 0];
+	} else {
+		var cell = c[0];
+		this.cellX = c[1];
+		this.cellY = c[2];
+		var cellDepth = c[3];
+		var f = cell.getZoomFactors(this.cellX, this.cellY, cellDepth);
+	}
+	this.zoomFactorX = f[0];
+	this.zoomFactorY = f[1];
+}
+ScrollBehavior.prototype = {
+	zoomBase: Math.pow(2, 1/192), //1.0036,
+	canvasClass: 'mouse-behavior-scrolling',
+	onMouseMove: function (canvasX, canvasY) {
+		var mouseDx = (canvasX - this.canvasStartX);
+		var mouseDy = (canvasY - this.canvasStartY);
+		var zoomX = this.zoomFactorX * mouseDx;
+		var zoomY = this.zoomFactorY * mouseDy;
+		var zoom = Math.pow(this.zoomBase, zoomX + zoomY);
+		setBase(this.startBaseCell, [
+			mouseDx + this.canvasStartX +
+				zoom * (this.startBaseX - this.canvasStartX),
+			mouseDy + this.canvasStartY +
+				zoom * (this.startBaseY - this.canvasStartY),
+			this.startBaseSize * zoom]);
+		recalculateBase();
+		redraw();
+	},
+	onMouseUp: function () {
+		setMouseBehavior(new DefaultBehavior());
+	}
+};
+
+var mouseBehavior;
+function setMouseBehavior(behavior) {
+	mouseBehavior = behavior;
+	//canvas.style.cursor = behavior.cursor || '';
+	canvas.className = behavior.canvasClass || '';
+}
+
+setMouseBehavior(new DefaultBehavior());
+
+document.addEventListener("mousemove", function (e) {
+	if (mouseBehavior && mouseBehavior.onMouseMove) {
+		mouseBehavior.onMouseMove(e.pageX, e.pageY);
+	}
+}, false);
+
+canvas.addEventListener("mousedown", function (e) {
+	if (mouseBehavior && mouseBehavior.onMouseDown) {
+		mouseBehavior.onMouseDown(e.pageX, e.pageY);
+	}
+}, false);
+
+document.addEventListener("mouseup", function (e) {
+	if (mouseBehavior && mouseBehavior.onMouseUp) {
+		mouseBehavior.onMouseUp(e.pageX, e.pageY);
+	}
+}, false);
+
+</script>
+</body>
+</html>
