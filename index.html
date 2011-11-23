@@ -48,16 +48,15 @@ window.onerror = function (e) {
 	alert(e);
 };
 
-function initCanvas() {
-	baseSize = Math.min(window.innerWidth, window.innerHeight) / 2;
-	s = baseSize;
+function init() {
+	s = baseSize = Math.min(innerWidth, innerHeight) / 2;
 	x = innerWidth/2 - s/2;
 	y = innerHeight/2 - s/2;
-	resetCanvas();
+	initCanvas();
 }
 
 // canvas resized
-function resetCanvas(e) {
+function initCanvas(e) {
 	canvasWidth = canvas.width = canvas.parentNode.offsetWidth;
 	canvasHeight = canvas.height = canvas.parentNode.offsetHeight;
 	ctx = canvas.getContext("2d");
@@ -68,7 +67,7 @@ function resetCanvas(e) {
 
 	redraw();
 }
-window.addEventListener("resize", resetCanvas, false);
+window.addEventListener("resize", initCanvas, false);
 
 // a rect intersects the viewport
 function rectInView(x, y, w, h) {
@@ -154,6 +153,23 @@ MouseBehavior.prototype = {
 function DefaultBehavior() {}
 DefaultBehavior.prototype = {
 	canvasClass: 'mouse-behavior-scroll',
+	onMouseMove: function func(x, y) {
+		var c = getPointCoordsInCell(x, y);
+		if (!c) {
+			// todo: zoom when clicking/dragging outside the fractal
+			var f = [0, 0];
+		} else {
+			var f = func.call.apply(Cell.prototype.getZoomFactors, c);
+		}
+		// Set directional cursor
+		var dirX = f[0];
+		var dirY = f[1];
+		var m = .33;
+		var direction =
+			(dirY > m ? 's' : -m > dirY ? 'n' : '') +
+			(dirX > m ? 'e' : -m > dirX ? 'w' : '');
+		canvas.style.cursor = direction ? direction + '-resize' : '';
+	},
 	onMouseDown: function (x, y) {
 		setMouseBehavior(new ScrollBehavior(x, y));
 	}
@@ -234,7 +250,7 @@ document.addEventListener("mouseup", function (e) {
 }, false);
 
 // start!
-initCanvas();
+init();
 
 </script>
 </body>

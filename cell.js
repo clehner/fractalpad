@@ -83,7 +83,7 @@ Cell.prototype = {
 			return [this, x, y, d];
 		}
 		var child = this.getChildCells();
-		return this.vertical ?
+		var coords = this.vertical ?
 			(x > 0 && x < 1) ?
 				(y > -.5 && y < 0) ?
 					child[0].getCoordsInDescendents(2*x - .5, 2*y + 1, d + 1) :
@@ -98,24 +98,32 @@ Cell.prototype = {
 					child[1].getCoordsInDescendents(2*x - 2, 2*y - .5, d + 1) :
 				null :
 			null;
+
+		if (!coords) {
+			// out of bounds.
+			// todo: recurse through parent?
+			coords = [this,
+				this.vertical ?
+					(x > 1 ? 0 : x < 0 ? 1 : .5) :
+					(x > 3/2 ? 0 : x < -1/2 ? 1 : .5),
+				this.vertical ?
+					(y > 3/2 ? 0 : y < -1/2 ? 1 : .5) :
+					(y > 1 ? 0 : y < 0 ? 1 : .5),
+				d];
+		}
+		return coords;
 	},
 
 	// Given a point relative to the cell and a depth for the cell,
 	// return a vector weighting the zoom that should be allowed.
 	getZoomFactors: function (x, y) {
-		if (!this.parent) {
-			return this.vertical ?
-				[0, 2 * (y - .5)]:
-				[2 * (.5 - x), 0];
+		if (this.parent) {
+			var first = (this == this.parent._childCells[0]);
+			var sub = first ? 1 : -1;
+			var vertical = this.vertical && sub;
+			var horizontal = !vertical && sub;
 		}
-		var first = (this == this.parent._childCells[0]);
-		return this.vertical ?
-			(first ?
-				[1, -2 * (y - .5)]:
-				[-1, 2 * (.5 - y)]):
-			(first ?
-				[-2 * (x - .5), 1]:
-				[2 * (.5 - x), -1]);
+		return [vertical || (1 - 2*x), horizontal || (1 - 2*y)];
 	},
 
 	loadImage: function (ctx, x, y, s) {
