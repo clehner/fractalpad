@@ -1,3 +1,6 @@
+// globals: rectInView & rectContainsView.
+// todo: encapsulate them better.
+
 function Cell(vertical, parent) {
 	this.vertical = vertical;
 	this.parent = parent;
@@ -115,13 +118,20 @@ Cell.prototype = {
 				[2 * (.5 - x), -1]);
 	},
 
+	loadImage: function (ctx, x, y, s) {
+		
+	},
+
 	// draw the image content of the cell
 	draw: function (ctx, x, y, s, inDrawAll) {
 		//ctx.fillStyle = "hsl(" + 360 * Math.random() + ", 100%, 75%)";
 		//ctx.fillRect(x - .5, y - .5, s, s);
-		//if (this.img) {
-			//ctx.drawImage(this.img, x, y, s, s);
-		//}
+		if (this.img) {
+			ctx.drawImage(this.img, x, y, s, s);
+		} else {
+			this.loadImage(ctx, x, y, s);
+		}
+		// redo border which gets covered up
 		if (!inDrawAll) {
 			this.drawOverlappedBorder(ctx, x, y, s);
 		}
@@ -207,18 +217,22 @@ Cell.prototype = {
 			var children = this.getChildCells();
 			if (this.vertical) {
 				if (firstInView) {
-					children[0].drawAll(ctx, x + s/4, y - s/2, s/2, fullyInView);
+					children[0].drawAll(ctx,
+						x + s/4, y - s/2, s/2, fullyInView);
 				}
 				if (secondInView) {
-					children[1].drawAll(ctx, x + s/4, y + s, s/2, fullyInView);
+					children[1].drawAll(ctx,
+						x + s/4, y + s, s/2, fullyInView);
 				}
 
 			} else {
 				if (firstInView) {
-					children[0].drawAll(ctx, x - s/2, y + s/4, s/2, fullyInView);
+					children[0].drawAll(ctx,
+						x - s/2, y + s/4, s/2, fullyInView);
 				}
 				if (secondInView) {
-					children[1].drawAll(ctx, x + s, y + s/4, s/2, fullyInView);
+					children[1].drawAll(ctx,
+						x + s, y + s/4, s/2, fullyInView);
 				}
 			}
 		}
@@ -226,5 +240,4 @@ Cell.prototype = {
 		this.drawBorder(ctx, x, y, s);
 	}
 };
-
 

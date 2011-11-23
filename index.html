@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<title>Square Fractal Space</title>
 	<script src="cell.js"></script>
-	<style>
+<style>
 
 body {
 	margin: 0;
@@ -38,8 +38,26 @@ body {
 var canvas = document.getElementById("canvas");
 var ctx;
 var canvasWidth, canvasHeight;
+var baseSize;
 
-function initCanvas(e) {
+// These 4 variables describe the position of the fractal in the viewport.
+var baseCell = new Cell(false);
+var x, y, s;
+
+window.onerror = function (e) {
+	alert(e);
+};
+
+function initCanvas() {
+	baseSize = Math.min(window.innerWidth, window.innerHeight) / 2;
+	s = baseSize;
+	x = innerWidth/2 - s/2;
+	y = innerHeight/2 - s/2;
+	resetCanvas();
+}
+
+// canvas resized
+function resetCanvas(e) {
 	canvasWidth = canvas.width = canvas.parentNode.offsetWidth;
 	canvasHeight = canvas.height = canvas.parentNode.offsetHeight;
 	ctx = canvas.getContext("2d");
@@ -50,7 +68,7 @@ function initCanvas(e) {
 
 	redraw();
 }
-window.addEventListener("resize", initCanvas, false);
+window.addEventListener("resize", resetCanvas, false);
 
 // a rect intersects the viewport
 function rectInView(x, y, w, h) {
@@ -64,12 +82,6 @@ function rectContainsView(x, y, w, h) {
 		&& x + w > canvasWidth && y + h > canvasHeight;
 }
 
-// These 4 variables describe the position of the fractal in the viewport.
-var baseCell = new Cell(false);
-var x = 192;
-var y = 192;
-var s = 256;
-
 // Set the base cell and its position in the viewport
 function setBase(cell, coords) {
 	baseCell = cell;
@@ -81,7 +93,6 @@ function setBase(cell, coords) {
 // Change the base cell if it is not a good base cell for tbe current position.
 // The base cell should be the closest ancestor cell that contains the
 // viewport.
-// 
 function recalculateBase() {
 	// walk down
 	var inView = baseCell.getViewSituation([x, y, s]);
@@ -121,17 +132,6 @@ function redraw() {
 	}
 }
 
-/*
-function zoomToPoint(pointX, pointY, factor) {
-	s *= factor;
-	x = pointX + factor * (x - pointX);
-	y = pointY + factor * (y - pointY);
-	redraw();
-}
-*/
-
-initCanvas();
-
 // Given points relative to the canvas, get
 // the cell they are in, and the coords of the point relative to the cell.
 function getPointCoordsInCell(canvasX, canvasY) {
@@ -140,10 +140,9 @@ function getPointCoordsInCell(canvasX, canvasY) {
 		(canvasY - y) / s);
 }
 
-
 // Mouse handling
 
-// base class blah blah blah
+// abstract interface blah blah blah
 function MouseBehavior() {}
 MouseBehavior.prototype = {
 	canvasClass: "",
@@ -161,6 +160,7 @@ DefaultBehavior.prototype = {
 };
 
 function ScrollBehavior(canvasX, canvasY) {
+	this.zoomBase = Math.pow(2, 1/(baseSize * 3/4));
 	this.canvasStartX = canvasX;
 	this.canvasStartY = canvasY;
 	this.startBaseCell = baseCell;
@@ -169,6 +169,7 @@ function ScrollBehavior(canvasX, canvasY) {
 	this.startBaseSize = s;
 	var c = getPointCoordsInCell(canvasX, canvasY);
 	if (!c) {
+		// todo: zoom when clicking/dragging outside the fractal
 		var f = [0, 0];
 	} else {
 		var cell = c[0];
@@ -180,9 +181,11 @@ function ScrollBehavior(canvasX, canvasY) {
 	this.zoomFactorX = f[0];
 	this.zoomFactorY = f[1];
 }
+
 ScrollBehavior.prototype = {
 	zoomBase: Math.pow(2, 1/192), //1.0036,
 	canvasClass: 'mouse-behavior-scrolling',
+
 	onMouseMove: function (canvasX, canvasY) {
 		var mouseDx = (canvasX - this.canvasStartX);
 		var mouseDy = (canvasY - this.canvasStartY);
@@ -198,6 +201,7 @@ ScrollBehavior.prototype = {
 		recalculateBase();
 		redraw();
 	},
+
 	onMouseUp: function () {
 		setMouseBehavior(new DefaultBehavior());
 	}
@@ -206,7 +210,6 @@ ScrollBehavior.prototype = {
 var mouseBehavior;
 function setMouseBehavior(behavior) {
 	mouseBehavior = behavior;
-	//canvas.style.cursor = behavior.cursor || '';
 	canvas.className = behavior.canvasClass || '';
 }
 
@@ -229,6 +232,9 @@ document.addEventListener("mouseup", function (e) {
 		mouseBehavior.onMouseUp(e.pageX, e.pageY);
 	}
 }, false);
+
+// start!
+initCanvas();
 
 </script>
 </body>
