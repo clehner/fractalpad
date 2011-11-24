@@ -106,14 +106,13 @@ function recalculateBase() {
 				baseCell.getChildCoords(1, x, y, s));
 			recalculateBase();
 		} else {
-			stopped = true;
-			//factor = 1/factor;
+			//todo: move somewhere useful
 			console.log('Lost!');
 		}
 	} else if (!inView.first && !inView.second) {
 		// zoomed completely into one cell's image.
-		// zoom back out.
-		factor = 1/1.05;
+		console.log('Too far.');
+		//todo: zoom back out
 	}
 
 	// walk up

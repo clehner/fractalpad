@@ -189,11 +189,17 @@ Cell.prototype = {
 
 	// this should be called for the base cell only
 	drawOuterBorder: function (ctx, x, y, s) {
+		ctx.beginPath();
+		ctx.moveTo(x, y);
 		if (this.vertical) {
-			ctx.strokeRect(x, y - s/2, s, 2*s);
+			ctx.lineTo(x, y + s);
+			ctx.moveTo(x + s, y);
 		} else {
-			ctx.strokeRect(x - s/2, y, 2*s, s);
+			ctx.lineTo(x + s, y);
+			ctx.moveTo(x, y + s);
 		}
+		ctx.lineTo(x + s, y + s);
+		ctx.stroke();
 	},
 
 	// Draw the cell at a given position on the canvas, at a given size,
