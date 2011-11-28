@@ -131,75 +131,54 @@ Cell.prototype = {
 	},
 
 	// draw the image content of the cell
-	draw: function (ctx, x, y, s, inDrawAll) {
-		//ctx.fillStyle = "hsl(" + 360 * Math.random() + ", 100%, 75%)";
-		//ctx.fillRect(x - .5, y - .5, s, s);
-		if (this.img) {
-			ctx.drawImage(this.img, x, y, s, s);
-		} else {
-			this.loadImage(ctx, x, y, s);
-		}
-		// redo border which gets covered up
-		if (!inDrawAll) {
-			this.drawOverlappedBorder(ctx, x, y, s);
-		}
+	draw: function (ctx, x, y, s) {
+	},
+
+	redraw: function (ctx, x, y, s) {
+		ctx.clearRect(x, y, s, s);
+		this.draw(ctx, x, y, s);
+		this.drawBorder(ctx, x, y, s);
 	},
 
 	drawBorder: function (ctx, x, y, s) {
-		if (s < 1) return;
-		ctx.beginPath();
-		if (this.vertical) {
-			// above
-			ctx.moveTo(x,     y - s/2);
-			ctx.lineTo(x + s, y - s/2);
-			// below
-			ctx.moveTo(x,     y + 3*s/2);
-			ctx.lineTo(x + s, y + 3*s/2);
-
-		} else {
-			// left
-			ctx.moveTo(x - s/2, y);
-			ctx.lineTo(x - s/2, y + s);
-			// right
-			ctx.moveTo(x + 3*s/2, y);
-			ctx.lineTo(x + 3*s/2, y + s);
-		}
-		ctx.stroke();
-	},
-
-	// draw the 2 border segments that drawing this cell overlaps
-	drawOverlappedBorder: function (ctx, x, y, s) {
 		var q = s / 4;
 		if (q < 1) return;
+		if (!this.parent) {
+			this.drawOuterBorder(ctx, x, y, s);
+		}
+
 		ctx.beginPath();
+		ctx.moveTo(x, y);
+		//ctx.lineWidth = q / 32;
 		if (this.vertical) {
-			ctx.moveTo(x, y);
 			ctx.lineTo(x + q, y);
 			ctx.moveTo(x + s - q, y);
 			ctx.lineTo(x + s, y);
 
+			ctx.moveTo(x, y + s);
+			ctx.lineTo(x + q, y + s);
+			ctx.moveTo(x + s - q, y + s);
+
 		} else {
-			ctx.moveTo(x, y);
 			ctx.lineTo(x, y + q);
 			ctx.moveTo(x, y + s - q);
 			ctx.lineTo(x, y + s);
+
+			ctx.moveTo(x + s, y);
+			ctx.lineTo(x + s, y + q);
+			ctx.moveTo(x + s, y + s - q);
 		}
+		ctx.lineTo(x + s, y + s);
 		ctx.stroke();
 	},
 
 	// this should be called for the base cell only
 	drawOuterBorder: function (ctx, x, y, s) {
-		ctx.beginPath();
-		ctx.moveTo(x, y);
 		if (this.vertical) {
-			ctx.lineTo(x, y + s);
-			ctx.moveTo(x + s, y);
+			ctx.strokeRect(x, y - s/2, s, 2*s);
 		} else {
-			ctx.lineTo(x + s, y);
-			ctx.moveTo(x, y + s);
+			ctx.strokeRect(x - s/2, y, 2*s, s);
 		}
-		ctx.lineTo(x + s, y + s);
-		ctx.stroke();
 	},
 
 	// Draw the cell at a given position on the canvas, at a given size,

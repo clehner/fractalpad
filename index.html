@@ -49,7 +49,7 @@ window.onerror = function (e) {
 };
 
 function init() {
-	s = baseSize = Math.min(innerWidth, innerHeight) / 2;
+	s = baseSize = Math.min(innerWidth, innerHeight) / 2 - 2;
 	x = innerWidth/2 - s/2;
 	y = innerHeight/2 - s/2;
 	initCanvas();
@@ -125,9 +125,6 @@ function redraw() {
 	ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 	recalculateBase();
 	baseCell.drawAll(ctx, x, y, s);
-	if (baseCell.parent == null) {
-		baseCell.drawOuterBorder(ctx, x, y, s);
-	}
 }
 
 // Given points relative to the canvas, get
@@ -198,7 +195,6 @@ function ScrollBehavior(canvasX, canvasY) {
 }
 
 ScrollBehavior.prototype = {
-	zoomBase: Math.pow(2, 1/192), //1.0036,
 	canvasClass: 'mouse-behavior-scrolling',
 
 	onMouseMove: function (canvasX, canvasY) {
