@@ -1,0 +1,35 @@
+body {
+	margin: 0;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+.mouse-behavior-scroll {
+	cursor: -webkit-grab;
+	cursor: -moz-grab;
+	cursor: -ms-grab;
+	cursor: -o-grab;
+	cursor: grab;
+}
+
+.mouse-behavior-scrolling {
+	cursor: -webkit-grabbing;
+	cursor: -moz-grabbing;
+	cursor: -ms-grabbing;
+	cursor: -o-grabbing;
+	cursor: grabbing;
+}
+
+.debug-rect, .debug-rect2 {
+	z-index: -1;
+	position: absolute;
+	background-color: rgba(255, 0, 0, 0.05);
+	overflow: hidden;
+}
+
+.debug-rect2 {
+	background-color: rgba(255, 0, 0, .1);
+}
+

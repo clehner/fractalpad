@@ -130,14 +130,14 @@ function debugRect2(rect, msg) {
 	if (!debuggerRect.parentNode) document.body.appendChild(debuggerRect);
 }
 
-function Fractal(rootCell, canvas, viewport) {
+function FractalView(rootCell, canvas, viewport) {
 	if (viewport) this.viewport = viewport;
 	this.canvas = canvas;
 	this.rootCell = this.baseCell = rootCell;
 	this.layers = [];
 
 }
-Fractal.prototype = {
+FractalView.prototype = {
 	rootCell: null,
 	baseCell: null,
 	viewport: new Rect(0, 0, 0, 0),
@@ -289,7 +289,7 @@ Fractal.prototype = {
 	}
 };
 
-function Cell(parent, j) {
+function Fractal(parent, j) {
 	if (parent) {
 		this.parent = parent;
 		// i is the kind of cell this is out of an array of kinds.
@@ -299,8 +299,8 @@ function Cell(parent, j) {
 		this.j = j;
 	}
 }
-Cell.prototype = {
-	constructor: Cell,
+Fractal.prototype = {
+	constructor: Fractal,
 	i: 0,
 	j: 0,
 	rect: null,
@@ -409,12 +409,12 @@ Cell.prototype = {
 	*/
 };
 
-function SquareRectangleFractalCell() {
-	Cell.apply(this, arguments);
+function SquareRectangleFractal() {
+	Fractal.apply(this, arguments);
 	this.vertical = this.i % 2;
 }
-SquareRectangleFractalCell.prototype = {
-	constructor: SquareRectangleFractalCell,
+SquareRectangleFractal.prototype = {
+	constructor: SquareRectangleFractal,
 	vertical: null,
 	magicRects: [
 		[ // horizontal
@@ -449,11 +449,11 @@ SquareRectangleFractalCell.prototype = {
 	}
 
 };
-inherit(SquareRectangleFractalCell, Cell);
+inherit(SquareRectangleFractal, Fractal);
 
-// a cell and a point relative to it
-function CellPosition(cell, point) {
-	this.cell = cell;
+// A fractal and a point relative to it.
+function FractalPosition(fractal, point) {
+	this.fractal = fractal;
 	this.point = point;
 }
 
@@ -474,9 +474,16 @@ function FractalBorder(fractal) {
 		var rect = cell.rect;
 
 		ctx.beginPath();
+		/*
+		var dir = (cell.i + 2 * cell.j);
+		ctx.moveTo(rect.x + rect.w * (dir == 1), rect.y + rect.h * (dir == 0));
+		ctx.lineTo(rect.x + rect.w * (dir != 2), rect.y + rect.h * (dir != 3));
+		ctx.stroke();
+		return true;
+		*/
 		ctx.moveTo(rect.x, rect.y);
 		//ctx.lineWidth = q / 32;
-		
+
 		if (cell.vertical) {
 			ctx.lineTo(rect.x + rect.w / 4, rect.y);
 			ctx.moveTo(rect.x + rect.w * 3/4, rect.y);
