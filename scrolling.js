@@ -1,11 +1,12 @@
 
-function DefaultBehavior(mouse) {
+function DefaultBehavior(fractalView, mouse) {
+	this.fractalView = fractalView;
 	this.mouse = mouse;
 }
 DefaultBehavior.prototype = {
 	className: 'mouse-behavior-scroll',
 	onMouseMove: function func(point) {
-		var zoomFactor = fractal.getZoomFactor(point);
+		var zoomFactor = this.fractalView.getZoomFactor(point);
 
 		// Set directional cursor
 		var dirX = zoomFactor.x;
@@ -17,19 +18,19 @@ DefaultBehavior.prototype = {
 		canvas.style.cursor = direction ? direction + '-resize' : '';
 	},
 	onMouseDown: function (point) {
-		this.mouse.setBehavior(new ScrollBehavior(this.mouse, point));
+		var behavior = new ScrollBehavior(this.fractalView, this.mouse, point);
+		this.mouse.setBehavior(behavior);
 	}
 };
 
-function ScrollBehavior(mouse, mouseCoords) {
+function ScrollBehavior(fractalView, mouse, mouseCoords) {
+	this.fractalView = fractalView;
 	this.mouse = mouse;
-	this.zoomBase = Math.pow(2, 1/(baseSize * 3/4));
 
 	this.mouseStart = mouseCoords;
-	this.startBaseCell = fractal.baseCell;
-	this.startBaseRect = fractal.baseCell.rect;
+	this.startBase = fractalView.base;
 
-	this.zoomFactor = fractal.getZoomFactor(mouseCoords);
+	this.zoomFactor = fractalView.getZoomFactor(mouseCoords);
 }
 
 ScrollBehavior.prototype = {
@@ -40,19 +41,25 @@ ScrollBehavior.prototype = {
 		var mouseDy = (mouseCoords.y - this.mouseStart.y);
 		var zoomX = this.zoomFactor.x * mouseDx;
 		var zoomY = this.zoomFactor.y * mouseDy;
-		var zoom = Math.pow(this.zoomBase, zoomX + zoomY);
-		this.startBaseCell.setPosition(new Rect(
+		var zoom = Math.pow(this.fractalView.zoomBase, zoomX + zoomY);
+
+		var startBaseRect = this.startBase.rect;
+		var baseRect = new Rect(
 			mouseDx + this.mouseStart.x +
-				zoom * (this.startBaseRect.x - this.mouseStart.x),
+				zoom * (startBaseRect.x - this.mouseStart.x),
 			mouseDy + this.mouseStart.y +
-				zoom * (this.startBaseRect.y - this.mouseStart.y),
-			this.startBaseRect.w * zoom,
-			this.startBaseRect.h * zoom));
-		fractal.setBase(this.startBaseCell);
-		fractal.redraw();
+				zoom * (startBaseRect.y - this.mouseStart.y),
+			startBaseRect.w * zoom,
+			startBaseRect.h * zoom
+		);
+
+		var baseFractal = this.startBase.fractal;
+		this.fractalView.setBase(new FixedFractal(baseFractal, baseRect));
+		//fractalView.redraw();
 	},
 
 	onMouseUp: function () {
-		this.mouse.setBehavior(new DefaultBehavior(this.mouse));
+		var behavior = new DefaultBehavior(this.fractalView, this.mouse);
+		this.mouse.setBehavior(behavior);
 	}
 };
