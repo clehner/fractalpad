@@ -239,13 +239,16 @@ FractalView.prototype = {
 };
 
 function Fractal(parent, j) {
-	if (parent) {
+	if (parent instanceof Fractal) {
 		this.parent = parent;
 		// i is the kind of cell this is out of an array of kinds.
 		// i.e. vertical or horizontal
 		// j is this.parent.children.indexOf(this)
 		this.i = (parent.i + 1) % this.numChildren;
 		this.j = j;
+		this.id = this.generateId();
+	} else {
+		this.id = parent.toString();
 	}
 }
 Fractal.prototype = {
@@ -256,6 +259,27 @@ Fractal.prototype = {
 	children: null,
 	childRects: [],
 	numChildren: 0,
+	id: "",
+
+	generateId: (function () {
+		var digits =
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+		return function () {
+			if (!this.parent) return "";
+			var s = this.parent.id.split("&");
+			var b64 = s[0] || "";
+			var b10 = s[1] || 0;
+			b10 = (b10 << 1) + +this.j;
+			if (b10 > 64) {
+				b64 += digits.charAt(b10 & 63);
+				b10 >>= 6;
+			}
+			if (b10 < 10) {
+				b10 = "0" + b10;
+			}
+			return b64 + "&" + b10;
+		};
+	})(),
 
 	getChildren: function () {
 		if (this.children) return this.children;
