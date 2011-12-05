@@ -1,10 +1,10 @@
-
 function DefaultBehavior(fractalView, mouse) {
 	this.fractalView = fractalView;
 	this.mouse = mouse;
 }
 DefaultBehavior.prototype = {
 	className: 'mouse-behavior-scroll',
+
 	onMouseMove: function func(point) {
 		var zoomFactor = this.fractalView.getZoomFactor(point);
 
