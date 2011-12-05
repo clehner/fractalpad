@@ -1,7 +1,6 @@
 var canvas = document.getElementById("canvas");
-var baseSize;
 
-var s = baseSize = (Math.min(innerWidth, innerHeight) - 1) / 2;
+var s = (Math.min(innerWidth, innerHeight) - 1) / 2;
 var x = (innerWidth - s)/2;
 var y = (innerHeight - s)/2;
 

@@ -1,3 +1,12 @@
+if (!Function.prototype.bind) {
+	Function.prototype.bind = function (context) {
+		var fn = this,
+			args = Array.prototype.slice.call(arguments, 1);
+		return function () {
+			return fn.apply(context, args.concat(args.concat.call(arguments)));
+		};
+	};
+}
 var inherit = function (constructor, superConstructor) {
 	// todo: cross-platformify this
 	constructor.prototype.__proto__ = superConstructor.prototype;
@@ -87,9 +96,16 @@ Rect.prototype = {
 			&& rect.y < this.y + this.h
 			&& this.x < rect.x + rect.w
 			&& this.y < rect.y + rect.h;
+	},
+
+	intersect: function (rect) {
+		if (!this.intersects(rect)) return null;
+		return this;
+		// todo. argh!
 	}
 };
 
+/*
 function debugRect(rect, msg) {
 	var a = document.createElement("div");
 	a.className = "debug-rect";
@@ -111,6 +127,7 @@ function debugRect2(rect, msg) {
 	if (msg) debuggerRect.textContent = msg;
 	if (!debuggerRect.parentNode) document.body.appendChild(debuggerRect);
 }
+*/
 
 function FractalView(canvas, initialBase, viewport) {
 	this.canvas = canvas;
@@ -144,16 +161,6 @@ FractalView.prototype = {
 		this._recalculateBase();
 		this.redraw();
 	},
-
-	// Transform the cell positions by mapping the square rect(0, 0, 1, 1)
-	// to a give rect.
-	/*
-	transformPosition: function (transform) {
-		this.baseCell.setPosition(this.baseCell.rect.transform(transform));
-		this._recalculateBase();
-		this.redraw();
-	},
-	*/
 
 	// The base cell should be the closest ancestor of all visible cells.
 	_recalculateBase: function () {
@@ -211,8 +218,7 @@ FractalView.prototype = {
 	},
 
 	draw: function () {
-		this.base.draw(this.ctx, this.viewport);
-		//this.base.fractal.drawAll(this.ctx, this.base.rect);
+		this.base.draw(this, this.ctx, this.viewport);
 	},
 
 	redraw: function () {
@@ -260,6 +266,7 @@ Fractal.prototype = {
 	childRects: [],
 	numChildren: 0,
 	id: "",
+	imageUrl: "fractal/%.png",
 
 	generateId: (function () {
 		var digits =
@@ -267,6 +274,18 @@ Fractal.prototype = {
 		return function () {
 			if (!this.parent) return "";
 			var s = this.parent.id.split("&");
+			/*
+			var parentId = this.parent.id;
+			var end = parentId.length - 1;
+			var last = parentId.charAt(end);
+			var rest = parentId.substr(0, end);
+
+			var val = 2 * digits.indexOf(last) + this.j;
+			if (val > 64) {
+				return rest + digits.charAt(val << 6);
+			} else {
+			*/
+
 			var b64 = s[0] || "";
 			var b10 = s[1] || 0;
 			b10 = (b10 << 1) + +this.j;
@@ -313,46 +332,95 @@ Fractal.prototype = {
 		return this.rect;
 	},
 
-	draw: function (ctx, rect) {
-		return false;
+	getZoomFactor: function (point) {
+		return [0, 0];
 	},
 
-	drawAll: function (ctx, rect, viewport, finishedContent, finishedBorder) {
+	// Draw the content of this cell, and maybe its descendants too.
+	// Return value false stops drawing children.
+	// Other return values are passed to draw call for children.
+	draw: function (ctx, rect, drawingStatus, viewport, view) {
+		var s = Math.min(rect.w, rect.h);
+		if (this.loadedImage) {
+			var oRect = this.getOuterRect(rect);
+			if (drawingStatus == "drawn") {
+				// overwrite parent's image
+				var iRect = oRect.intersect(viewport);
+				ctx.clearRect(iRect.x, iRect.y, iRect.w, iRect.h);
+			}
+			ctx.drawImage(this.image, oRect.x, oRect.y, oRect.w, oRect.h);
+			if (s < 512) {
+				return false;
+			} else {
+				// still need to draw children to get full resolution
+				return "drawn";
+			}
+
+		// Don't load image if parent is loading it at required resolution.
+		} else if (!this.image && // don't load more than once
+			//(drawingStatus != "loading" || (s > 256))
+			s > 256
+		) {
+			this.loadImage(view);
+			return "loading";
+		}
+
+		return drawingStatus;
+	},
+
+	drawAll: function (view, ctx, rect, viewport, imageStatus, borderStatus) {
 		if (rect.w < 1 || rect.h < 1) return;
 		if (!viewport.intersects(this.getOuterRect(rect))) return;
 
-		if (!finishedContent) {
-			finishedContent = (this.draw(ctx, rect) === false);
+		if (imageStatus !== false) {
+			imageStatus = this.draw(ctx, rect, imageStatus, viewport, view);
 		}
 		if (this.editing) {
 			this.drawEdits();
 		}
-		if (!finishedBorder) {
-			finishedBorder = (this.drawBorder(ctx, rect) === false);
+		if (borderStatus !== false) {
+			borderStatus = this.drawBorder(ctx, rect);
 		}
 
 		var children = this.getChildren();
 		this.getChildRects(rect).forEach(function (childRect, i) {
-			children[i].drawAll(ctx, childRect,
-				viewport, finishedContent, finishedBorder);
+			children[i].drawAll(view, ctx, childRect,
+				viewport, imageStatus, borderStatus);
 		});
 	},
-	
+
 	drawBorder: function (ctx, rect) {
 		ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
 	},
 
 	drawOuterBorder: function (ctx, innerRect) {
 		var rect = this.getOuterRect(innerRect);
-		//ctx.beginPath();
-		//ctx.moveTo(rect.x, rect.y);
 		ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
 	},
 
-	getZoomFactor: function (point) {
-		return [0, 0];
+	loadImage: function (view) {
+		console.log('load image', this.id);
+		var img = this.image = new Image();
+		img.src = this.imageUrl.replace('%', this.id);
+
+		var self = this;
+		img.onload = function () {
+			delete img.onload;
+			self.loadedImage = true;
+			view.redraw();
+		};
+		img.onerror = function () {
+			delete img.onload;
+			delete self.image;
+			console.error("We had an error. Ahhhhhh!!");
+			//scheduleRetry(self.loadImage.bind(self, view));
+		};
 	}
 };
+
+function scheduleRetry(fn) {
+	// todo
+}
 
 function SquareRectangleFractal() {
 	Fractal.apply(this, arguments);
@@ -432,9 +500,9 @@ FixedFractal.prototype = {
 	fractal: null,
 	rect: null,
 	
-	draw: function (ctx, viewport) {
+	draw: function (view, ctx, viewport) {
 		this.fractal.drawOuterBorder(ctx, this.rect);
-		this.fractal.drawAll(ctx, this.rect, viewport);
+		this.fractal.drawAll(view, ctx, this.rect, viewport);
 	},
 
 	getChildren: function () {
