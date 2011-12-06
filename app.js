@@ -1,3 +1,7 @@
+function $(id) {
+	return document.getElementById(id);
+}
+
 function init() {
 	var canvas = document.getElementById("canvas");
 
@@ -18,5 +22,33 @@ function init() {
 	updateViewport();
 
 	var mouse = new MouseController(canvas);
-	mouse.setBehavior(new DefaultBehavior(fractalView, mouse));
+
+	var scrollBehavior = new DefaultBehavior(fractalView, mouse);
+	mouse.setBehavior(scrollBehavior);
+
+	// Editor
+	var editor = new FractalEditor(fractalView, mouse);
+
+	// Modes
+	var inDrawMode, inScrollMode;
+	var modeButtons = {
+		scroll: $("scroll-mode"),
+		draw: $("draw-mode")
+	};
+
+	function updateMode() {
+		inDrawMode = modeButtons.draw.checked;
+		inScrollMode = !inDrawMode;
+		if (inScrollMode) {
+			editor.deactivate();
+			mouse.setBehavior(scrollBehavior);
+		} else if (inDrawMode) {
+			editor.activate();
+		}
+	}
+
+	modeButtons.scroll.addEventListener("change", updateMode, false);
+	modeButtons.draw.addEventListener("change", updateMode, false);
+	modeButtons.scroll.checked = true;
+	updateMode();
 }

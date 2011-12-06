@@ -4,6 +4,12 @@ body {
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
+	font: 16px Arial, Helvetica, sans-serif;
+}
+
+body, #canvas {
+	-webkit-user-select: none;
+	-moz-user-select: none;
 }
 
 .mouse-behavior-scroll {
@@ -22,14 +28,113 @@ body {
 	cursor: grabbing;
 }
 
-.debug-rect, .debug-rect2 {
-	z-index: -1;
-	position: absolute;
-	background-color: rgba(255, 0, 0, 0.05);
-	overflow: hidden;
+.mouse-behavior-draw {
+	cursor: url(images/pencil.gif) 4 16, crosshair;
+	cursor: url(images/brush.gif) 3 15, crosshair;
 }
 
-.debug-rect2 {
-	background-color: rgba(255, 0, 0, .1);
+.mouse-behavior-eyedropper {
+	cursor: url(images/eyedropper.gif) 1 14, crosshair;
+}
+
+/* Header stuff bar */
+
+#stuff-bar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	border: 2px grey;
+	border-style: none solid solid none;
+	background-color: white;
+}
+
+/* Mode picker */
+
+#modes {
+	float: left;
+	position: relative;
+	z-index: 20;
+	background-color: white;
+}
+
+#modes input {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	display: inline-block;
+	float: left;
+	width: 48px;
+	height: 48px;
+	margin: 0;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-color: #dcf;
+	cursor: pointer;
+}
+
+#modes input:first-child {
+	border-left: none;
+}
+
+#modes input:hover {
+	background-color: #edf;
+}
+
+#modes input:checked, #modes input:active {
+	background-color: #c8f;
+}
+#modes input:first-child:checked, #modes input:first-child:active {
+	margin: 0;
+}
+
+#scroll-mode {
+	background-image: url(images/hand-big.gif);
+}
+#draw-mode {
+	background-image: url(images/pencil-big.gif);
+	background-image: url(images/brush-big.gif);
+}
+
+/* Title box */
+
+#title-box {
+	padding: 6px 8px 0;
+	float: left;
+	font-size: 14px;
+	line-height: 18px;
+}
+
+#title-box h1 {
+	font-size: 16px;
+	margin: 0;
+}
+
+/* Color selector */
+
+#draw-options {
+	float: left;
+	  -webkit-transition-duration: 0.3s;
+	     -moz-transition-duration: 0.3s;
+	       -o-transition-duration: 0.3s;
+	          transition-duration: 0.3s;
+}
+
+#draw-options.hidden {
+	margin-left: -65px;
+}
+
+#color-selection {
+	float: left;
+	margin: 9px;
+	border: 1px solid grey;
+	width: 45px;
+	height: 28px;
+	cursor: pointer;
+	background-color: black;
+}
+
+#color-selection .alpha {
+	border-right: 46px solid white;
+	border-top: 29px solid black;
+	opacity: .25;
 }
 

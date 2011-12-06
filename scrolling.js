@@ -1,6 +1,7 @@
 function DefaultBehavior(fractalView, mouse) {
 	this.fractalView = fractalView;
 	this.mouse = mouse;
+	this.canvasStyle = fractalView.canvas.style;
 }
 DefaultBehavior.prototype = {
 	className: 'mouse-behavior-scroll',
@@ -15,11 +16,17 @@ DefaultBehavior.prototype = {
 		var direction =
 			(dirY > m ? 's' : -m > dirY ? 'n' : '') +
 			(dirX > m ? 'e' : -m > dirX ? 'w' : '');
-		canvas.style.cursor = direction ? direction + '-resize' : '';
+		this.canvasStyle.cursor = direction ? direction + '-resize' : '';
 	},
+
 	onMouseDown: function (point) {
 		var behavior = new ScrollBehavior(this.fractalView, this.mouse, point);
 		this.mouse.setBehavior(behavior);
+	},
+
+	onDeactivate: function (next) {
+		if (next instanceof ScrollBehavior) return;
+		this.fractalView.canvas.style.cursor = "";
 	}
 };
 
@@ -61,5 +68,10 @@ ScrollBehavior.prototype = {
 	onMouseUp: function () {
 		var behavior = new DefaultBehavior(this.fractalView, this.mouse);
 		this.mouse.setBehavior(behavior);
+	},
+
+	onDeactivate: function (next) {
+		if (next instanceof DefaultBehavior) return;
+		this.fractalView.canvas.style.cursor = "";
 	}
 };
