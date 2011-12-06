@@ -1,0 +1,3 @@
+[submodule "vendor/harmony"]
+	path = vendor/harmony
+	url = git://github.com/mrdoob/harmony.git
