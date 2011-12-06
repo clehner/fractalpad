@@ -138,3 +138,10 @@ body, #canvas {
 	opacity: .25;
 }
 
+#color-selector {
+	z-index: 30;
+}
+
+#color-selector input, #color-selector label {
+	display: none;
+}

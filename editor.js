@@ -13,6 +13,7 @@ function FractalEditor(fractalViewer, mouseController) {
 
 	colorSelection.addEventListener("click", onColorSelectionClicked, false);
 	document.body.appendChild(colorSelector.container);
+	colorSelector.container.id = "color-selector";
 	colorSelector.addEventListener("change", onColorSelectorChange, false);
 
 	function onColorSelectionClicked(e) {
