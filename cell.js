@@ -326,8 +326,7 @@ Fractal.prototype = {
 
 		// Don't load image if parent is loading it at required resolution.
 		} else if (!this.image && // don't load more than once
-			//(drawingStatus != "loading" || (s > 256))
-			s > 256
+			(drawingStatus != "loading" || (s > 256))
 		) {
 			this.loadImage(view);
 			return "loading";
@@ -529,23 +528,30 @@ function MouseController(element) {
 	var behavior;
 
 	this.setBehavior = function (b) {
+		if (behavior == b) return;
+		behavior && behavior.onDeactivate && behavior.onDeactivate(b);
 		behavior = b;
+		b && b.onActivate && b.onActivate();
 		element.className = behavior.className || '';
 	};
 
+	this.getPoint = function () {
+		return point;
+	};
+
 	element.addEventListener("mousedown", function (e) {
-		behavior && behavior.onMouseDown && behavior.onMouseDown(
-			new Point(e.pageX, e.pageY));
+		point = new Point(e.pageX, e.pageY);
+		behavior && behavior.onMouseDown && behavior.onMouseDown(point, e);
 	}, false);
 
 	document.addEventListener("mousemove", function (e) {
-		behavior && behavior.onMouseMove && behavior.onMouseMove(
-			new Point(e.pageX, e.pageY));
+		point = new Point(e.pageX, e.pageY);
+		behavior && behavior.onMouseMove && behavior.onMouseMove(point, e);
 	}, false);
 
 	document.addEventListener("mouseup", function (e) {
-		behavior && behavior.onMouseUp && behavior.onMouseUp(
-			new Point(e.pageX, e.pageY));
+		point = new Point(e.pageX, e.pageY);
+		behavior && behavior.onMouseUp && behavior.onMouseUp(point, e);
 	}, false);
 }
 
