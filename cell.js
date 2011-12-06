@@ -252,9 +252,9 @@ function Fractal(parent, j) {
 		// j is this.parent.children.indexOf(this)
 		this.i = (parent.i + 1) % this.numChildren;
 		this.j = j;
-		this.id = this.generateId();
+		this.id = BinaryId.child(parent.id, j);
 	} else {
-		this.id = parent.toString();
+		this.id = BinaryId.start(parent);
 	}
 }
 Fractal.prototype = {
@@ -267,38 +267,6 @@ Fractal.prototype = {
 	numChildren: 0,
 	id: "",
 	imageUrl: "fractal/%.png",
-
-	generateId: (function () {
-		var digits =
-			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-		return function () {
-			if (!this.parent) return "";
-			var s = this.parent.id.split("&");
-			/*
-			var parentId = this.parent.id;
-			var end = parentId.length - 1;
-			var last = parentId.charAt(end);
-			var rest = parentId.substr(0, end);
-
-			var val = 2 * digits.indexOf(last) + this.j;
-			if (val > 64) {
-				return rest + digits.charAt(val << 6);
-			} else {
-			*/
-
-			var b64 = s[0] || "";
-			var b10 = s[1] || 0;
-			b10 = (b10 << 1) + +this.j;
-			if (b10 > 64) {
-				b64 += digits.charAt(b10 & 63);
-				b10 >>= 6;
-			}
-			if (b10 < 10) {
-				b10 = "0" + b10;
-			}
-			return b64 + "&" + b10;
-		};
-	})(),
 
 	getChildren: function () {
 		if (this.children) return this.children;

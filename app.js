@@ -5,7 +5,7 @@ var x = (innerWidth - s)/2;
 var y = (innerHeight - s)/2;
 
 var initialRect = new Rect(x, y, s, s)
-var fractal = new SquareRectangleFractal("a-");
+var fractal = new SquareRectangleFractal("a_");
 var base = new FixedFractal(fractal, initialRect);
 var fractalView = new FractalView(canvas, base);
 
