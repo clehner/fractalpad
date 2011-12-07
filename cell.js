@@ -555,3 +555,57 @@ function MouseController(element) {
 	}, false);
 }
 
+function KeyController(win) {
+	var behavior = {},
+		keyMap = 0,
+		self = this;
+
+	win = win || window;
+
+	function map(e) {
+		return keyMap ^ (keyMap =
+			(1 * (self.ctrl = e.ctrlKey))
+			| (2 * (self.alt = e.altKey))
+			| (4 * (self.shift = e.shiftKey))
+			| (8 * (self.meta = e.metaKey)));
+	}
+
+	function onKeyDown(e) {
+		var diff = map(e);
+		(diff & 1) && behavior.onCtrlDown && behavior.onCtrlDown(e);
+		(diff & 2) && behavior.onAltDown && behavior.onAltDown(e);
+		(diff & 4) && behavior.onShiftDown && behavior.onShiftDown(e);
+		(diff & 8) && behavior.onMetaDown && behavior.onMetaDown(e);
+	}
+
+	function onKeyUp(e) {
+		var diff = map(e);
+		(diff & 1) && behavior.onCtrlUp && behavior.onCtrlUp(e);
+		(diff & 2) && behavior.onAltUp && behavior.onAltUp(e);
+		(diff & 4) && behavior.onShiftUp && behavior.onShiftUp(e);
+		(diff & 8) && behavior.onMetaUp && behavior.onMetaUp(e);
+		(diff && !keyMap) && behavior.onAllUp && behavior.onAllUp(e);
+	}
+
+	this.activate = function () {
+		win.addEventListener("keydown", onKeyDown, false);
+		win.addEventListener("keyup", onKeyUp, false);
+		win.addEventListener("blur", onKeyUp, false);
+	};
+
+	this.deactivate = function () {
+		win.removeEventListener("keydown", onKeyDown, false);
+		win.removeEventListener("keyup", onKeyUp, false);
+		win.removeEventListener("blur", onKeyUp, false);
+	};
+
+	this.setBehavior = function (b) {
+		behavior = b;
+	};
+}
+KeyController.prototype = {
+	shift: false,
+	ctrl: false,
+	alt: false,
+	meta: false
+};
