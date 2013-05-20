@@ -99,9 +99,24 @@ Rect.prototype = {
 	},
 
 	intersect: function (rect) {
-		if (!this.intersects(rect)) return null;
-		return this;
-		// todo. argh!
+		//if (this.containsRect(rect)) return this;
+		var x0 = Math.max(this.x, rect.x);
+		var x1 = Math.min(this.x + this.w, rect.x + rect.w);
+
+		if (x0 <= x1) {
+			var y0 = Math.max(this.y, rect.y);
+			var y1 = Math.min(this.y + this.h, rect.y + rect.h);
+
+			if (y0 <= y1) {
+				return new Rect(x0, y0, x1 - x0, y1 - y0);
+			}
+		}
+		return null;
+	},
+
+	getCenterPoint: function () {
+		return new Point(this.x + this.w / 2,
+						 this.y + this.h / 2);
 	}
 };
 
