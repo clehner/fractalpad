@@ -29,12 +29,12 @@ body, #canvas {
 }
 
 .mouse-behavior-draw {
-	cursor: url(images/pencil.gif) 4 16, crosshair;
-	cursor: url(images/brush.gif) 3 15, crosshair;
+	cursor: url(../images/pencil.gif) 4 16, crosshair;
+	cursor: url(../images/brush.gif) 3 15, crosshair;
 }
 
 .mouse-behavior-eyedropper {
-	cursor: url(images/eyedropper.gif) 1 14, crosshair;
+	cursor: url(../images/eyedropper.gif) 1 14, crosshair;
 }
 
 /* Header stuff bar */
@@ -87,11 +87,11 @@ body, #canvas {
 }
 
 #scroll-mode {
-	background-image: url(images/hand-big.gif);
+	background-image: url(../images/hand-big.gif);
 }
 #draw-mode {
-	background-image: url(images/pencil-big.gif);
-	background-image: url(images/brush-big.gif);
+	background-image: url(../images/pencil-big.gif);
+	background-image: url(../images/brush-big.gif);
 }
 
 /* Title box */
