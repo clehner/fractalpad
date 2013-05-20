@@ -168,7 +168,8 @@ FractalView.prototype = {
 		this.draw();
 
 		var s = Math.min(viewport.w, viewport.h) / 2;
-		this.zoomBase = Math.pow(2, 1/(s * 3/4));
+		var ratio = this.base.fractal.zoomRatio;
+		this.zoomBase = Math.pow(2, 1/(s * ratio));
 	},
 
 	setBase: function (fixedFractal) {
@@ -319,6 +320,9 @@ Fractal.prototype = {
 		return [0, 0];
 	},
 
+	// distance from center of cell to center of first child cell
+	zoomRatio: 1,
+
 	// Draw the content of this cell, and maybe its descendants too.
 	// Return value false stops drawing children.
 	// Other return values are passed to draw call for children.
@@ -419,6 +423,7 @@ SquareRectangleFractal.prototype = {
 			new Rect(.25, -.5, .5, .5), // top
 			new Rect(.25, 1, .5, .5)]], // bottom
 	numChildren: 2,
+	zoomRatio: 3/4,
 
 	outerRects: [
 		new Rect(-.5, 0, 2, 1), // horizontal
