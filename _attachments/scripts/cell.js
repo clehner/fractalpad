@@ -280,6 +280,7 @@ Fractal.prototype = {
 	parent: null,
 	children: null,
 	childRects: [],
+	baseShape: new Rect(0, 0, 1, 1),
 	numChildren: 0,
 	id: "",
 	imageUrl: "fractal/%.png",
@@ -327,14 +328,17 @@ Fractal.prototype = {
 	// Return value false stops drawing children.
 	// Other return values are passed to draw call for children.
 	draw: function (ctx, rect, drawingStatus, viewport, view) {
+		//return false;
 		var s = Math.min(rect.w, rect.h);
 		if (this.loadedImage) {
 			var oRect = this.getOuterRect(rect);
+			// todo: instead of clearing and drawing, draw the subset
 			if (drawingStatus == "drawn") {
 				// overwrite parent's image
 				var iRect = oRect.intersect(viewport);
 				ctx.clearRect(iRect.x, iRect.y, iRect.w, iRect.h);
 			}
+			// todo: draw only the part of the image intersecting the viewport
 			ctx.drawImage(this.image, oRect.x, oRect.y, oRect.w, oRect.h);
 			if (s < 512) {
 				return false;
@@ -380,12 +384,13 @@ Fractal.prototype = {
 	},
 
 	drawOuterBorder: function (ctx, innerRect) {
+		//return;
 		var rect = this.getOuterRect(innerRect);
 		ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
 	},
 
 	loadImage: function (view) {
-		console.log('load image', this.id);
+		//console.log('load image', this.id);
 		var img = this.image = new Image();
 		img.src = this.imageUrl.replace('%', this.id);
 
@@ -398,7 +403,7 @@ Fractal.prototype = {
 		img.onerror = function () {
 			delete img.onload;
 			delete self.image;
-			console.error("We had an error. Ahhhhhh!!");
+			//console.error("We had an error. Ahhhhhh!!");
 			//scheduleRetry(self.loadImage.bind(self, view));
 		};
 	}
@@ -447,7 +452,24 @@ SquareRectangleFractal.prototype = {
 			horizontal || (1 - 2*point.y));
 	},
 
+	/*
+	borderRects: [
+		new Rect(0, 0, 1, 1/16),
+		new Rect(0, 0, 1/16, 1),
+		new Rect(0, 1 - 1/16, 1, 1/16),
+		new Rect(1 - 1/16, 0, 1/16, 1)
+	],
+	*/
+
 	drawBorder: function (ctx, rect) {
+		/*
+		var r = rect.transform(this.borderRects[this.i * 1 + this.j * 2]);
+		ctx.fillRect(r.x, r.y, r.w, r.h);
+
+		if (rect.w < 2 || rect.h < 2) return false;
+		return;
+		*/
+
 		ctx.beginPath();
 		ctx.moveTo(rect.x, rect.y);
 
@@ -477,6 +499,76 @@ SquareRectangleFractal.prototype = {
 
 };
 inherit(SquareRectangleFractal, Fractal);
+
+
+/*
+function HexagonFractal() {
+	Fractal.apply(this, arguments);
+}
+HexagonFractal.prototype = {
+	constructor: HexagonFractal,
+	childRects: [[
+		new Rect(.25, -.5, .5, .5), // top
+		new Rect(.25, 1, .5, .5)
+	]], // bottom
+	numChildren: 6,
+	zoomRatio: 3/4,
+
+	outerRects: [
+		new Rect(-.5, 0, 2, 1), // horizontal
+		new Rect(0, -.5, 1, 2) // vertical
+	],
+	baseShape: new Rect(0, 0, 1, Math.sqrt(3)),
+
+	getOuterRect: function (rect) {
+		return rect.transform(this.outerRects[this.i]);
+	},
+
+	// Given a point relative to the cell,
+	// return a vector weighting the zoom that should be allowed.
+	getZoomFactor: function (point) {
+		if (this.parent) {
+			var sub = this.j ? -1 : 1;
+			var vertical = this.vertical && sub;
+			var horizontal = !vertical && sub;
+		}
+		return new Point(
+			vertical || (1 - 2*point.x),
+			horizontal || (1 - 2*point.y));
+	},
+
+	drawBorder: function (ctx, rect) {
+
+		ctx.beginPath();
+		ctx.moveTo(rect.x, rect.y);
+
+		if (this.vertical) {
+			ctx.lineTo(rect.x + rect.w / 4, rect.y);
+			ctx.moveTo(rect.x + rect.w * .75, rect.y);
+			ctx.lineTo(rect.x + rect.w, rect.y);
+
+			ctx.moveTo(rect.x, rect.y + rect.h);
+			ctx.lineTo(rect.x + rect.w / 4, rect.y + rect.h);
+			ctx.moveTo(rect.x + rect.w * .75, rect.y + rect.h);
+
+		} else {
+			ctx.lineTo(rect.x, rect.y + rect.h / 4);
+			ctx.moveTo(rect.x, rect.y + rect.h * .75);
+			ctx.lineTo(rect.x, rect.y + rect.h);
+
+			ctx.moveTo(rect.x + rect.w, rect.y);
+			ctx.lineTo(rect.x + rect.w, rect.y + rect.h / 4);
+			ctx.moveTo(rect.x + rect.w, rect.y + rect.h * .75);
+		}
+		ctx.lineTo(rect.x + rect.w, rect.y + rect.h);
+		ctx.stroke();
+
+		if (rect.w < 4 || rect.h < 4) return false;
+	}
+
+};
+inherit(HexagonFractal, Fractal);
+*/
 
 // A fractal at a specific rect
 function FixedFractal(fractal, rect) {

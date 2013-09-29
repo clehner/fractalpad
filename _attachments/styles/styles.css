@@ -97,15 +97,20 @@ body, #canvas {
 /* Title box */
 
 #title-box {
+	/*
 	padding: 6px 8px 0;
+	line-height: 18px;
+	*/
+	padding: 0 10px;
 	float: left;
 	font-size: 14px;
-	line-height: 18px;
+	display: none;
 }
 
 #title-box h1 {
 	font-size: 16px;
 	margin: 0;
+	line-height: 48px;
 }
 
 /* Color selector */

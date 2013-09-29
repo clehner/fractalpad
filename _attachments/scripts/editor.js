@@ -48,12 +48,26 @@ function FractalEditor(fractalViewer, mouseController) {
 
 	var drawBehavior = {
 		className: "mouse-behavior-draw",
+		point: null,
 
 		onMouseDown: function (point, e) {
 			if (!key.shift) {
 				colorSelector.hide();
 			}
 			//mouseController.setBehavior(new DrawingBehavior());
+			this.point = point;
+		},
+
+		onMouseMove: function (point) {
+			if (this.point) {
+				// todo
+				this.point = point;
+			}
+		},
+
+		onMouseUp: function (point) {
+			this.onMouseMove(point);
+			this.point = null;
 		}
 	};
 

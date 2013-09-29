@@ -8,9 +8,10 @@ function init() {
 	var s = (Math.min(innerWidth, innerHeight) - 1) / 2;
 	var x = (innerWidth - s)/2;
 	var y = (innerHeight - s)/2;
+	var centerSquare = new Rect(x, y, s, s);
 
-	var initialRect = new Rect(x, y, s, s);
 	var fractal = new SquareRectangleFractal("a_");
+	var initialRect = centerSquare.transform(fractal.baseShape);
 	var base = new FixedFractal(fractal, initialRect);
 	var fractalView = new FractalView(canvas, base);
 
