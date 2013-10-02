@@ -14,7 +14,7 @@ this.BinaryId = {
 		var rest = parentId.substr(0, end);
 
 		var lastCode = digits.indexOf(last);
-		if (lastCode == -1 || lastCode == 0) {
+		if (lastCode === -1 || lastCode === 0) {
 			rest += last;
 			lastCode = 1;
 		}

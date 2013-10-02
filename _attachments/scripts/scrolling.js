@@ -12,7 +12,7 @@ DefaultBehavior.prototype = {
 		// Set directional cursor
 		var dirX = zoomFactor.x;
 		var dirY = zoomFactor.y;
-		var m = .33;
+		var m = 0.33;
 		var direction =
 			(dirY > m ? 's' : -m > dirY ? 'n' : '') +
 			(dirX > m ? 'e' : -m > dirX ? 'w' : '');

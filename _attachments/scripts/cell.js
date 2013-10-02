@@ -8,9 +8,14 @@ if (!Function.prototype.bind) {
 	};
 }
 var inherit = function (constructor, superConstructor) {
-	// todo: cross-platformify this
-	constructor.prototype.__proto__ = superConstructor.prototype;
-}
+	function C() {}
+	C.prototype = superConstructor.prototype;
+	var proto = new C();
+	for (var i in constructor.prototype) {
+		proto[i] = constructor.prototype[i];
+	}
+	constructor.prototype = proto;
+};
 
 Array.prototype.first = function (test) {
 	for (var i = 0; i < this.length; i++) {
@@ -54,8 +59,8 @@ Rect.prototype = {
 	h: NaN,
 
 	toString: function () {
-		return "[Rect x:" + this.x + " y:" + this.y
-			+ " w:" + this.w + " h:" + this.h + "]";
+		return "[Rect x:" + this.x + " y:" + this.y +
+			" w:" + this.w + " h:" + this.h + "]";
 	},
 
 	transform: function (rect) {
@@ -78,24 +83,24 @@ Rect.prototype = {
 	},
 
 	containsPoint: function (point) {
-		return point.x > this.x
-			&& point.y > this.y
-			&& point.x < this.x + this.w
-			&& point.y < this.y + this.h;
+		return point.x > this.x &&
+			point.y > this.y &&
+			point.x < this.x + this.w &&
+			point.y < this.y + this.h;
 	},
 
 	containsRect: function (rect) {
-		return this.x < rect.x
-			&& this.y < rect.y
-			&& this.x + this.w > rect.x + rect.w
-			&& this.y + this.h > rect.y + rect.h;
+		return this.x < rect.x &&
+			this.y < rect.y &&
+			this.x + this.w > rect.x + rect.w &&
+			this.y + this.h > rect.y + rect.h;
 	},
 
 	intersects: function (rect) {
-		return rect.x < this.x + this.w
-			&& rect.y < this.y + this.h
-			&& this.x < rect.x + rect.w
-			&& this.y < rect.y + rect.h;
+		return rect.x < this.x + this.w &&
+			rect.y < this.y + this.h &&
+			this.x < rect.x + rect.w &&
+			this.y < rect.y + rect.h;
 	},
 
 	intersect: function (rect) {
@@ -115,8 +120,7 @@ Rect.prototype = {
 	},
 
 	getCenterPoint: function () {
-		return new Point(this.x + this.w / 2,
-						 this.y + this.h / 2);
+		return new Point(this.x + this.w / 2, this.y + this.h / 2);
 	}
 };
 
@@ -215,7 +219,7 @@ FractalView.prototype = {
 				this.base = visibleChild;
 			} else {
 				// todo: prevent this from happening.
-				//console.log('Lost!');
+				console.log('Lost!');
 			}
 
 			children = this.base.getChildren();
@@ -422,17 +426,17 @@ SquareRectangleFractal.prototype = {
 	vertical: null,
 	childRects: [
 		[ // horizontal
-			new Rect(-.5, .25, .5, .5), // left
-			new Rect(1, .25, .5, .5)], // right
+			new Rect(-0.5, 0.25, 0.5, 0.5), // left
+			new Rect(1, 0.25, 0.5, 0.5)], // right
 		[ // vertical
-			new Rect(.25, -.5, .5, .5), // top
-			new Rect(.25, 1, .5, .5)]], // bottom
+			new Rect(0.25, -0.5, 0.5, 0.5), // top
+			new Rect(0.25, 1, 0.5, 0.5)]], // bottom
 	numChildren: 2,
 	zoomRatio: 3/4,
 
 	outerRects: [
-		new Rect(-.5, 0, 2, 1), // horizontal
-		new Rect(0, -.5, 1, 2) // vertical
+		new Rect(-0.5, 0, 2, 1), // horizontal
+		new Rect(0, -0.5, 1, 2) // vertical
 	],
 
 	getOuterRect: function (rect) {
@@ -442,10 +446,11 @@ SquareRectangleFractal.prototype = {
 	// Given a point relative to the cell,
 	// return a vector weighting the zoom that should be allowed.
 	getZoomFactor: function (point) {
+		var vertical, horizontal;
 		if (this.parent) {
 			var sub = this.j ? -1 : 1;
-			var vertical = this.vertical && sub;
-			var horizontal = !vertical && sub;
+			vertical = this.vertical && sub;
+			horizontal = !vertical && sub;
 		}
 		return new Point(
 			vertical || (1 - 2*point.x),
@@ -475,21 +480,21 @@ SquareRectangleFractal.prototype = {
 
 		if (this.vertical) {
 			ctx.lineTo(rect.x + rect.w / 4, rect.y);
-			ctx.moveTo(rect.x + rect.w * .75, rect.y);
+			ctx.moveTo(rect.x + rect.w * 0.75, rect.y);
 			ctx.lineTo(rect.x + rect.w, rect.y);
 
 			ctx.moveTo(rect.x, rect.y + rect.h);
 			ctx.lineTo(rect.x + rect.w / 4, rect.y + rect.h);
-			ctx.moveTo(rect.x + rect.w * .75, rect.y + rect.h);
+			ctx.moveTo(rect.x + rect.w * 0.75, rect.y + rect.h);
 
 		} else {
 			ctx.lineTo(rect.x, rect.y + rect.h / 4);
-			ctx.moveTo(rect.x, rect.y + rect.h * .75);
+			ctx.moveTo(rect.x, rect.y + rect.h * 0.75);
 			ctx.lineTo(rect.x, rect.y + rect.h);
 
 			ctx.moveTo(rect.x + rect.w, rect.y);
 			ctx.lineTo(rect.x + rect.w, rect.y + rect.h / 4);
-			ctx.moveTo(rect.x + rect.w, rect.y + rect.h * .75);
+			ctx.moveTo(rect.x + rect.w, rect.y + rect.h * 0.75);
 		}
 		ctx.lineTo(rect.x + rect.w, rect.y + rect.h);
 		ctx.stroke();
@@ -508,15 +513,15 @@ function HexagonFractal() {
 HexagonFractal.prototype = {
 	constructor: HexagonFractal,
 	childRects: [[
-		new Rect(.25, -.5, .5, .5), // top
-		new Rect(.25, 1, .5, .5)
+		new Rect(0.25, -0.5, 0.5, 0.5), // top
+		new Rect(0.25, 1, 0.5, 0.5)
 	]], // bottom
 	numChildren: 6,
 	zoomRatio: 3/4,
 
 	outerRects: [
-		new Rect(-.5, 0, 2, 1), // horizontal
-		new Rect(0, -.5, 1, 2) // vertical
+		new Rect(-0.5, 0, 2, 1), // horizontal
+		new Rect(0, -0.5, 1, 2) // vertical
 	],
 	baseShape: new Rect(0, 0, 1, Math.sqrt(3)),
 
@@ -544,21 +549,21 @@ HexagonFractal.prototype = {
 
 		if (this.vertical) {
 			ctx.lineTo(rect.x + rect.w / 4, rect.y);
-			ctx.moveTo(rect.x + rect.w * .75, rect.y);
+			ctx.moveTo(rect.x + rect.w * 0.75, rect.y);
 			ctx.lineTo(rect.x + rect.w, rect.y);
 
 			ctx.moveTo(rect.x, rect.y + rect.h);
 			ctx.lineTo(rect.x + rect.w / 4, rect.y + rect.h);
-			ctx.moveTo(rect.x + rect.w * .75, rect.y + rect.h);
+			ctx.moveTo(rect.x + rect.w * 0.75, rect.y + rect.h);
 
 		} else {
 			ctx.lineTo(rect.x, rect.y + rect.h / 4);
-			ctx.moveTo(rect.x, rect.y + rect.h * .75);
+			ctx.moveTo(rect.x, rect.y + rect.h * 0.75);
 			ctx.lineTo(rect.x, rect.y + rect.h);
 
 			ctx.moveTo(rect.x + rect.w, rect.y);
 			ctx.lineTo(rect.x + rect.w, rect.y + rect.h / 4);
-			ctx.moveTo(rect.x + rect.w, rect.y + rect.h * .75);
+			ctx.moveTo(rect.x + rect.w, rect.y + rect.h * 0.75);
 		}
 		ctx.lineTo(rect.x + rect.w, rect.y + rect.h);
 		ctx.stroke();
@@ -641,9 +646,9 @@ function MouseController(element) {
 
 	this.setBehavior = function (b) {
 		if (behavior == b) return;
-		behavior && behavior.onDeactivate && behavior.onDeactivate(b);
+		if (behavior && behavior.onDeactivate) behavior.onDeactivate(b);
 		behavior = b;
-		b && b.onActivate && b.onActivate();
+		if (b && b.onActivate) b.onActivate();
 		element.className = behavior.className || '';
 	};
 
@@ -653,17 +658,17 @@ function MouseController(element) {
 
 	element.addEventListener("mousedown", function (e) {
 		point = new Point(e.pageX, e.pageY);
-		behavior && behavior.onMouseDown && behavior.onMouseDown(point, e);
+		if (behavior && behavior.onMouseDown) behavior.onMouseDown(point, e);
 	}, false);
 
 	document.addEventListener("mousemove", function (e) {
 		point = new Point(e.pageX, e.pageY);
-		behavior && behavior.onMouseMove && behavior.onMouseMove(point, e);
+		if (behavior && behavior.onMouseMove) behavior.onMouseMove(point, e);
 	}, false);
 
 	document.addEventListener("mouseup", function (e) {
 		point = new Point(e.pageX, e.pageY);
-		behavior && behavior.onMouseUp && behavior.onMouseUp(point, e);
+		if (behavior && behavior.onMouseUp) behavior.onMouseUp(point, e);
 	}, false);
 }
 
@@ -684,19 +689,19 @@ function KeyController(win) {
 
 	function onKeyDown(e) {
 		var diff = map(e);
-		(diff & 1) && behavior.onCtrlDown && behavior.onCtrlDown(e);
-		(diff & 2) && behavior.onAltDown && behavior.onAltDown(e);
-		(diff & 4) && behavior.onShiftDown && behavior.onShiftDown(e);
-		(diff & 8) && behavior.onMetaDown && behavior.onMetaDown(e);
+		if ((diff & 1) && behavior.onCtrlDown) behavior.onCtrlDown(e);
+		if ((diff & 2) && behavior.onAltDown) behavior.onAltDown(e);
+		if ((diff & 4) && behavior.onShiftDown) behavior.onShiftDown(e);
+		if ((diff & 8) && behavior.onMetaDown) behavior.onMetaDown(e);
 	}
 
 	function onKeyUp(e) {
 		var diff = map(e);
-		(diff & 1) && behavior.onCtrlUp && behavior.onCtrlUp(e);
-		(diff & 2) && behavior.onAltUp && behavior.onAltUp(e);
-		(diff & 4) && behavior.onShiftUp && behavior.onShiftUp(e);
-		(diff & 8) && behavior.onMetaUp && behavior.onMetaUp(e);
-		(diff && !keyMap) && behavior.onAllUp && behavior.onAllUp(e);
+		if ((diff & 1) && behavior.onCtrlUp) behavior.onCtrlUp(e);
+		if ((diff & 2) && behavior.onAltUp) behavior.onAltUp(e);
+		if ((diff & 4) && behavior.onShiftUp) behavior.onShiftUp(e);
+		if ((diff & 8) && behavior.onMetaUp) behavior.onMetaUp(e);
+		if ((diff && !keyMap) && behavior.onAllUp) behavior.onAllUp(e);
 	}
 
 	this.activate = function () {
