@@ -1,0 +1,21 @@
+{
+	"name": "FractalPad",
+	"version" : "0.0.1",
+	"description": "Collaborative zoomable fractal drawing space",
+	"long_description" : "",
+	"launch_path": "/",
+	"url": "https://github.com/clehner/fractalpad",
+	"categories": ["learning"],
+	"flattr_user_id" : "cel",
+	"icons": {
+	},
+	"promo_images": {
+	},
+	"screenshots": [
+	],
+	"developer": {
+		"name": "Charles Lehner",
+		"url": "http://celehner.com"
+	},
+	"default_locale": "en"
+}
