@@ -1,19 +1,20 @@
-function $(id) {
-	return document.getElementById(id);
-}
+/* global Rect, FractalView, FixedFractal,
+   DragController, ToolSet */
 
-function init() {
+function FractalPad() {
 	var canvas = document.getElementById("canvas");
+	this.viewerEl = canvas;
 
-	var s = (Math.min(innerWidth, innerHeight) - 1) / 2;
-	var x = (innerWidth - s)/2;
-	var y = (innerHeight - s)/2;
+	var s = (Math.min(window.innerWidth, window.innerHeight) - 1) / 2;
+	var x = (window.innerWidth - s)/2;
+	var y = (window.innerHeight - s)/2;
 	var centerSquare = new Rect(x, y, s, s);
 
 	var fractal = new SquareRectangleFractal("a_");
 	var initialRect = centerSquare.transform(fractal.baseShape);
 	var base = new FixedFractal(fractal, initialRect);
 	var fractalView = new FractalView(canvas, base);
+	this.view = fractalView;
 
 	function updateViewport() {
 		var viewport = new Rect(0, 0, window.innerWidth, window.innerHeight);
@@ -22,34 +23,38 @@ function init() {
 	window.addEventListener("resize", updateViewport, false);
 	updateViewport();
 
-	var mouse = new MouseController(canvas);
+	//var mouse = new MouseController(canvas);
 
-	var scrollBehavior = new DefaultBehavior(fractalView, mouse);
-	mouse.setBehavior(scrollBehavior);
+	//var scrollBehavior = new DefaultBehavior(fractalView, mouse);
+	//mouse.setBehavior(scrollBehavior);
 
 	// Editor
-	var editor = new FractalEditor(fractalView, mouse);
+	//var editor = new FractalEditor(fractalView, mouse);
 
 	// Modes
-	var inDrawMode, inScrollMode;
-	var modeButtons = {
-		scroll: $("scroll-mode"),
-		draw: $("draw-mode")
+	var dragger = new DragController(canvas);
+	var toolset = new ToolSet(this, dragger, document.getElementById("tools"));
+	toolset.selectTool(window.sessionStorage.defaultTool || "scroll");
+	toolset.onSelectTool = function (toolName) {
+		window.sessionStorage.defaultTool = toolName;
 	};
-
-	function updateMode() {
-		inDrawMode = modeButtons.draw.checked;
-		inScrollMode = !inDrawMode;
-		if (inScrollMode) {
-			editor.deactivate();
-			mouse.setBehavior(scrollBehavior);
-		} else if (inDrawMode) {
-			editor.activate();
-		}
-	}
-
-	modeButtons.scroll.addEventListener("change", updateMode, false);
-	modeButtons.draw.addEventListener("change", updateMode, false);
-	modeButtons.scroll.checked = true;
-	updateMode();
 }
+
+FractalPad.prototype = {
+	constructor: FractalPad,
+
+	viewerEl: null,
+	location: {x: NaN, y: NaN, z: NaN},
+
+	queueTileSave: function (tile) {
+	},
+
+	setPosition: function (x, y) {
+	}
+};
+
+
+function init() {
+	window.app = new FractalPad();
+}
+

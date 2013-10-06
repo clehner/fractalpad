@@ -1,3 +1,0 @@
-[submodule "vendor/harmony"]
-	path = vendor/harmony
-	url = git://github.com/nilium/harmony.git

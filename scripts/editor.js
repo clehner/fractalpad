@@ -4,8 +4,8 @@ function FractalEditor(fractalViewer, mouseController) {
 
 	var color, // [r,g,b,a]
 		brushStyle, // rgb() or rgba(), string for css/canvas
-		drawOptions = $("draw-options"),
-		colorSelection = $("color-selection"),
+		colorTools = document.getElementById("color-tools"),
+		colorSelection = document.getElementById("color-selection"),
 		alphaSelection = colorSelection.getElementsByTagName("div")[0],
 		colorPalette = new Palette(),
 		colorSelector = new ColorSelector(colorPalette),
@@ -47,7 +47,7 @@ function FractalEditor(fractalViewer, mouseController) {
 	colorSelector.setColor([255, 0, 0, 1]);
 
 	var drawBehavior = {
-		className: "mouse-behavior-draw",
+		className: "cursor-draw",
 		point: null,
 
 		onMouseDown: function (point, e) {
@@ -72,7 +72,7 @@ function FractalEditor(fractalViewer, mouseController) {
 	};
 
 	var eyedropperBehavior = {
-		className: "mouse-behavior-eyedropper",
+		className: "cursor-eyedropper",
 
 		eyedrop: function (point) {
 			var pixel = fractalViewer.ctx.getImageData(point.x, point.y, 1, 1);
@@ -120,13 +120,13 @@ function FractalEditor(fractalViewer, mouseController) {
 	});
 
 	this.activate = function () {
-		drawOptions.className = "";
+		colorTools.className = "";
 		mouseController.setBehavior(drawBehavior);
 		key.activate();
 	};
 
 	this.deactivate = function () {
-		drawOptions.className = "hidden";
+		colorTools.className = "hidden";
 		colorSelector.hide();
 		key.deactivate();
 	};

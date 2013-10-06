@@ -12,7 +12,7 @@ body, #canvas {
 	-moz-user-select: none;
 }
 
-.mouse-behavior-scroll {
+.cursor-scroll {
 	cursor: -webkit-grab;
 	cursor: -moz-grab;
 	cursor: -ms-grab;
@@ -20,7 +20,7 @@ body, #canvas {
 	cursor: grab;
 }
 
-.mouse-behavior-scrolling {
+.cursor-scrolling {
 	cursor: -webkit-grabbing;
 	cursor: -moz-grabbing;
 	cursor: -ms-grabbing;
@@ -28,70 +28,72 @@ body, #canvas {
 	cursor: grabbing;
 }
 
-.mouse-behavior-draw {
-	cursor: url(../images/pencil.gif) 4 16, crosshair;
-	cursor: url(../images/brush.gif) 3 15, crosshair;
+.cursor-draw {
+	cursor: url(../images/brush.gif) 4 16, crosshair;
 }
 
-.mouse-behavior-eyedropper {
+.cursor-eyedropper {
 	cursor: url(../images/eyedropper.gif) 1 14, crosshair;
+}
+
+.cursor-crosshair {
+	cursor: crosshair;
+}
+
+.cursor-eraser {
+	cursor: url(../images/eraser.gif) 3 15, crosshair;
 }
 
 /* Header stuff bar */
 
-#stuff-bar {
+#header {
 	position: absolute;
 	top: 0;
 	left: 0;
-	border: 2px grey;
+	border: 2px rgb(121, 12, 148);
+	background-color: rgb(245, 231, 255);
 	border-style: none solid solid none;
-	background-color: white;
 }
 
-/* Mode picker */
+/* Tools picker */
 
-#modes {
+#tools {
 	float: left;
-	position: relative;
 	z-index: 20;
-	background-color: white;
 }
 
-#modes input {
-	-webkit-appearance: none;
-	-moz-appearance: none;
+#tools a {
 	display: inline-block;
 	float: left;
 	width: 48px;
 	height: 48px;
-	margin: 0;
 	background-repeat: no-repeat;
 	background-position: center;
 	background-color: #dcf;
 	cursor: pointer;
 }
 
-#modes input:first-child {
-	border-left: none;
-}
-
-#modes input:hover {
+#tools a:hover {
 	background-color: #edf;
 }
-
-#modes input:checked, #modes input:active {
+#tools a:active {
+	background-color: #c7e;
+}
+#tools a.active {
 	background-color: #c8f;
 }
-#modes input:first-child:checked, #modes input:first-child:active {
-	margin: 0;
-}
 
-#scroll-mode {
+#scroll-tool {
 	background-image: url(../images/hand-big.gif);
 }
-#draw-mode {
-	background-image: url(../images/pencil-big.gif);
+#draw-tool {
 	background-image: url(../images/brush-big.gif);
+}
+#erase-tool {
+	background-image: url(../images/eraser-big.gif);
+}
+#eyedropper-tool {
+	background-image: url(../images/eyedropper-big.gif);
 }
 
 /* Title box */
@@ -107,24 +109,34 @@ body, #canvas {
 	display: none;
 }
 
-#title-box h1 {
+#tools h1 {
 	font-size: 16px;
 	margin: 0;
 	line-height: 48px;
 }
 
+.hidden {
+	display: none;
+}
+
 /* Color selector */
 
-#draw-options {
+#color-tools {
 	float: left;
 	  -webkit-transition-duration: 0.3s;
 	     -moz-transition-duration: 0.3s;
 	       -o-transition-duration: 0.3s;
 	          transition-duration: 0.3s;
+	z-index: 14;
+	width: 65px;
+	overflow: hidden;
+	border-left: 2px solid rgb(175, 138, 184);
 }
 
-#draw-options.hidden {
-	margin-left: -65px;
+#color-tools.hidden {
+	width: 1px;
+	border-width: 0px;
+	display: block;
 }
 
 #color-selection {
@@ -134,19 +146,107 @@ body, #canvas {
 	width: 45px;
 	height: 28px;
 	cursor: pointer;
+	background-image: url(../images/transparent.png);
+	background-color: white;
+}
+
+#color-selection-inner {
+	height: 100%;
 	background-color: black;
 }
 
-#color-selection .alpha {
-	border-right: 46px solid white;
-	border-top: 29px solid black;
-	opacity: .25;
+/* Color Picker */
+
+#color-picker {
+	position: absolute;
+	width: 188px;
+	top: 50px;
+	padding: 8px;
+	border: 1px solid #888;
+	margin: -1px;
+	background-color: rgb(255, 244, 187);
 }
 
-#color-selector {
-	z-index: 30;
+#hue-square {
+	width: 150px;
+	margin: 0 8px 8px 0;
+	background-color: red;
 }
 
-#color-selector input, #color-selector label {
-	display: none;
+#hue-square, #hue-slider {
+	position: relative;
+	float: left;
+	height: 150px;
+}
+
+#sat-val-canvas {
+	height: 100%;
+	width: 100%;
+}
+
+.x-cursor, .y-cursor, .xy-cursor {
+	position: absolute;
+	top: 0;
+	left: 0;
+	border: 1px solid black;
+}
+
+.xy-cursor {
+	width: 3px;
+	height: 3px;
+	margin: -2px 0 0 -3px;
+	left: 0px;
+	top: 100%;
+	background-color: black;
+	border: 1px solid white;
+	border-radius: 2px;
+}
+
+.x-cursor {
+	width: 2px;
+	height: 100%;
+	margin: -1px -2px;
+}
+
+.y-cursor {
+	width: 100%;
+	height: 2px;
+	margin: -2px -1px;
+}
+
+#hue-slider {
+	width: 30px;
+	background-color: white;
+}
+
+#hue-canvas {
+	width: 100%;
+	height: 100%;
+}
+
+#alpha-slider {
+	width: 150px;
+	height: 18px;
+	position: relative;
+	float: left;
+	margin-bottom: 8px;
+}
+
+#alpha-canvas {
+	float: left;
+}
+
+#size-slider {
+	float: left;
+	position: relative;
+	width: 150px;
+	height: 18px;
+}
+
+#dot-preview {
+	border: 1px solid #888;
+	float: right;
+	margin-top: 8px;
+	background-image: url(../images/transparent.png);
+	background-color: white;
 }

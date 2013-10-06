@@ -12,11 +12,13 @@ if (!Function.prototype.bind) {
 
 function inherit(constructor, superConstructor) {
 	function C() {}
-	C.prototype.constructor = superConstructor;
-	for (var key in superConstructor.prototype) {
-		C.prototype[key] = superConstructor.prototype[key];
+	//C.prototype.constructor = superConstructor;
+	C.prototype = superConstructor.prototype;
+	var proto = new C();
+	for (var key in constructor.prototype) {
+		proto[key] = constructor.prototype[key];
 	}
-	return new C();
+	constructor.prototype = proto;
 }
 
 Array.prototype.first = function (test) {
@@ -201,7 +203,7 @@ FractalView.prototype = {
 		// If the base does not cover the viewport, make the parent base.
 		// todo: make this work on the edges of the root cell
 		while (this.base.hasParent() && !containsViewport(this.base)) {
-			//!isOuterRectVisible(this.base)) {
+			//!isOuterRectVisible(this.base)) 
 			if (i++ > 100) return;
 			this.base = this.base.getParent();
 			//console.log('walk up');
@@ -263,6 +265,15 @@ FractalView.prototype = {
 			point.x > (rect.x + rect.w) ? 1 : point.x < rect.x ? -1 : 0,
 			point.y > (rect.y + rect.h) ? 1 : point.y < rect.y ? -1 : 0
 		);
+	},
+
+	getPixel: function (x, y) {
+		var pixel = this.ctx.getImageData(x, y, 1, 1);
+		//var pixel = {data: [255, 255, 255, 255].map(function (n) {
+			//return n * Math.random();
+		//})};
+		var rgba = Array.prototype.slice.call(pixel.data);
+		return rgba;
 	}
 };
 

@@ -10,32 +10,58 @@
 	<script src="scripts/ids.js"></script>
 	<script src="scripts/cell.js"></script>
 	<script src="scripts/scrolling.js"></script>
-	<script src="scripts/editor.js"></script>
+	<script src="scripts/utils.js"></script>
+	<script src="scripts/tools.js"></script>
 	<script src="scripts/app.js"></script>
-
-	<script src="vendor/harmony/src/js/colorutils.js"></script>
-	<script src="vendor/harmony/src/js/colorselector.js"></script>
-	<script src="vendor/harmony/src/js/palette.js"></script>
 </head>
 <body>
 	<canvas id="canvas"></canvas>
-	<div id="stuff-bar">
+	<div id="header">
+
 		<div id="title-box">
 			<h1>fractalpad</h1>
 			<!--<a href="https://github.com/clehner/fracland"
 				title="Source on Github">started by cel</a>-->
 			<!--<em>wow!</em>-->
 		</div>
-		<div id="modes">
-			<input type="radio" name="mode" id="scroll-mode" title="Scroll">
-			<input type="radio" name="mode" id="draw-mode" title="Draw">
+
+		<div id="tools">
+			<a id="scroll-tool" title="Scroll"></a>
+			<a id="draw-tool" title="Draw"></a>
+			<a id="erase-tool" title="Eraser"></a>
+			<a id="eyedropper-tool" title="Eyedropper"></a>
 		</div>
-		<div id="draw-options" class="hidden">
+
+		<div id="color-tools" class="hidden">
 			<div id="color-selection" title="Color Selection">
-				<div class="alpha"></div>
+				<div id="color-selection-inner"></div>
 			</div>
 		</div>
+
+		<div id="color-picker" class="hidden">
+			<div id="hue-square">
+				<canvas id="sat-val-canvas" width="150" height="150"></canvas>
+				<div id="sat-val-cursor" class="xy-cursor"></div>
+			</div>
+			<div id="hue-slider">
+				<canvas id="hue-canvas" width="1" height="150"></canvas>
+				<div id="hue-cursor" class="y-cursor"></div>
+			</div>
+			<canvas id="dot-preview" width="28" height="48"></canvas>
+			<div id="alpha-slider">
+				<canvas id="alpha-canvas" width="150" height="18"></canvas>
+				<div id="alpha-cursor" class="x-cursor"></div>
+			</div>
+			<div id="size-slider">
+				<canvas id="size-canvas" width="150" height="18"></canvas>
+				<div id="size-cursor" class="x-cursor"></div>
+			</div>
+		</div>
+
 	</div>
+
+	<canvas id="cursor-circle" width="20" height="20"></canvas>
+
 	<script>init();</script>
 	<script>//document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
 </body>

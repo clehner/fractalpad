@@ -1,32 +1,43 @@
-function DefaultBehavior(fractalView, mouse) {
+/* global Point, Rect, FixedFractal */
+
+function pointToDirection(point) {
+	var dirX = point.x;
+	var dirY = point.y;
+	var m = 0.33;
+	var direction =
+		(dirY > m ? 's' : -m > dirY ? 'n' : '') +
+		(dirX > m ? 'e' : -m > dirX ? 'w' : '');
+	return direction;
+}
+
+function ScrollHoverBehavior(fractalView, mouse) {
 	this.fractalView = fractalView;
 	this.mouse = mouse;
 	this.canvasStyle = fractalView.canvas.style;
 }
-DefaultBehavior.prototype = {
-	className: 'mouse-behavior-scroll',
+ScrollHoverBehavior.prototype = {
+	onActivate: function () {
+		this.fractalView.canvas.className = "cursor-scroll";
+	},
 
-	onMouseMove: function func(point) {
+	onMouseMove: function (point) {
 		var zoomFactor = this.fractalView.getZoomFactor(point);
 
 		// Set directional cursor
-		var dirX = zoomFactor.x;
-		var dirY = zoomFactor.y;
-		var m = .33;
-		var direction =
-			(dirY > m ? 's' : -m > dirY ? 'n' : '') +
-			(dirX > m ? 'e' : -m > dirX ? 'w' : '');
+		var direction = pointToDirection(zoomFactor);
+		console.log(zoomFactor, direction);
 		this.canvasStyle.cursor = direction ? direction + '-resize' : '';
 	},
 
-	onMouseDown: function (point) {
+	onDragStart: function (e) {
+		var point = new Point(e.pageX, e.pageY);
 		var behavior = new ScrollBehavior(this.fractalView, this.mouse, point);
 		this.mouse.setBehavior(behavior);
 	},
 
 	onDeactivate: function (next) {
 		if (next instanceof ScrollBehavior) return;
-		this.fractalView.canvas.style.cursor = "";
+		this.canvasStyle.cursor = "";
 	}
 };
 
@@ -41,9 +52,12 @@ function ScrollBehavior(fractalView, mouse, mouseCoords) {
 }
 
 ScrollBehavior.prototype = {
-	className: 'mouse-behavior-scrolling',
+	onActivate: function () {
+		this.fractalView.canvas.className = "cursor-scrolling";
+	},
 
-	onMouseMove: function (mouseCoords) {
+	onDrag: function (e) {
+		var mouseCoords = new Point(e.pageX, e.pageY);
 		var mouseDx = (mouseCoords.x - this.mouseStart.x);
 		var mouseDy = (mouseCoords.y - this.mouseStart.y);
 		var zoomX = this.zoomFactor.x * mouseDx;
@@ -65,13 +79,16 @@ ScrollBehavior.prototype = {
 		//fractalView.redraw();
 	},
 
-	onMouseUp: function () {
-		var behavior = new DefaultBehavior(this.fractalView, this.mouse);
+	onDragEnd: function () {
+		var behavior = new ScrollHoverBehavior(this.fractalView, this.mouse);
 		this.mouse.setBehavior(behavior);
 	},
 
 	onDeactivate: function (next) {
-		if (next instanceof DefaultBehavior) return;
+		if (next instanceof ScrollHoverBehavior) return;
 		this.fractalView.canvas.style.cursor = "";
 	}
 };
+
+window.ScrollHoverBehavior = ScrollHoverBehavior;
+window.ScrollBehavior = ScrollBehavior;
