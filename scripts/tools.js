@@ -71,27 +71,6 @@ function ToolSet(app, mouseController, container) {
 
 	var tools = {
 		scroll: new ScrollHoverBehavior(app.view, mouseController),
-		/*{
-			onActivate: function () {
-				viewerEl.className = "cursor-scroll";
-				colorTools.className = "hidden";
-				colorPicker.hide();
-				cursorCircle.className = "hidden";
-			},
-			onDragStart: function (e) {
-				viewerEl.className = "cursor-scrolling";
-				this.startMouse = {x: e._x, y: e._y};
-				this.startPos = {x: loc.x, y: loc.y};
-			},
-			onDrag: function (e) {
-				app.setPosition(
-					this.startPos.x + e._x - this.startMouse.x,
-					this.startPos.y + e._y - this.startMouse.y);
-			},
-			onDragEnd: function (e) {
-				viewerEl.className = "cursor-scroll";
-			}
-		}*/
 
 		draw: {
 			touchedTiles: [],

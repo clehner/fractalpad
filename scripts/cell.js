@@ -12,7 +12,6 @@ if (!Function.prototype.bind) {
 
 function inherit(constructor, superConstructor) {
 	function C() {}
-	//C.prototype.constructor = superConstructor;
 	C.prototype = superConstructor.prototype;
 	var proto = new C();
 	for (var key in constructor.prototype) {
@@ -223,7 +222,7 @@ FractalView.prototype = {
 				this.base = visibleChild;
 			} else {
 				// todo: prevent this from happening.
-				//console.log('Lost!');
+				console.log('Lost!');
 			}
 
 			children = this.base.getChildren();
@@ -529,15 +528,15 @@ function HexagonFractal() {
 HexagonFractal.prototype = {
 	constructor: HexagonFractal,
 	childRects: [[
-		new Rect(.25, -.5, .5, .5), // top
-		new Rect(.25, 1, .5, .5)
+		new Rect(0.25, -0.5, 0.5, 0.5), // top
+		new Rect(0.25, 1, 0.5, 0.5)
 	]], // bottom
 	numChildren: 6,
 	zoomRatio: 3/4,
 
 	outerRects: [
-		new Rect(-.5, 0, 2, 1), // horizontal
-		new Rect(0, -.5, 1, 2) // vertical
+		new Rect(-0.5, 0, 2, 1), // horizontal
+		new Rect(0, -0.5, 1, 2) // vertical
 	],
 	baseShape: new Rect(0, 0, 1, Math.sqrt(3)),
 
@@ -565,21 +564,21 @@ HexagonFractal.prototype = {
 
 		if (this.vertical) {
 			ctx.lineTo(rect.x + rect.w / 4, rect.y);
-			ctx.moveTo(rect.x + rect.w * .75, rect.y);
+			ctx.moveTo(rect.x + rect.w * 0.75, rect.y);
 			ctx.lineTo(rect.x + rect.w, rect.y);
 
 			ctx.moveTo(rect.x, rect.y + rect.h);
 			ctx.lineTo(rect.x + rect.w / 4, rect.y + rect.h);
-			ctx.moveTo(rect.x + rect.w * .75, rect.y + rect.h);
+			ctx.moveTo(rect.x + rect.w * 0.75, rect.y + rect.h);
 
 		} else {
 			ctx.lineTo(rect.x, rect.y + rect.h / 4);
-			ctx.moveTo(rect.x, rect.y + rect.h * .75);
+			ctx.moveTo(rect.x, rect.y + rect.h * 0.75);
 			ctx.lineTo(rect.x, rect.y + rect.h);
 
 			ctx.moveTo(rect.x + rect.w, rect.y);
 			ctx.lineTo(rect.x + rect.w, rect.y + rect.h / 4);
-			ctx.moveTo(rect.x + rect.w, rect.y + rect.h * .75);
+			ctx.moveTo(rect.x + rect.w, rect.y + rect.h * 0.75);
 		}
 		ctx.lineTo(rect.x + rect.w, rect.y + rect.h);
 		ctx.stroke();

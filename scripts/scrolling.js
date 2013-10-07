@@ -25,7 +25,6 @@ ScrollHoverBehavior.prototype = {
 
 		// Set directional cursor
 		var direction = pointToDirection(zoomFactor);
-		console.log(zoomFactor, direction);
 		this.canvasStyle.cursor = direction ? direction + '-resize' : '';
 	},
 
