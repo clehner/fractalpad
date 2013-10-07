@@ -1,5 +1,5 @@
-/* global Rect, FractalView, FixedFractal,
-   DragController, ToolSet */
+/* global Rect, FractalView, FixedFractal, SquareRectangleFractal,
+   MouseController, ToolSet */
 
 function FractalPad() {
 	var canvas = document.getElementById("canvas");
@@ -23,17 +23,12 @@ function FractalPad() {
 	window.addEventListener("resize", updateViewport, false);
 	updateViewport();
 
-	//var mouse = new MouseController(canvas);
-
-	//var scrollBehavior = new DefaultBehavior(fractalView, mouse);
-	//mouse.setBehavior(scrollBehavior);
-
 	// Editor
 	//var editor = new FractalEditor(fractalView, mouse);
 
 	// Modes
-	var dragger = new DragController(canvas);
-	var toolset = new ToolSet(this, dragger, document.getElementById("tools"));
+	var mouse = new MouseController(canvas);
+	var toolset = new ToolSet(this, mouse, document.getElementById("tools"));
 	toolset.selectTool(window.sessionStorage.defaultTool || "scroll");
 	toolset.onSelectTool = function (toolName) {
 		window.sessionStorage.defaultTool = toolName;
@@ -52,7 +47,6 @@ FractalPad.prototype = {
 	setPosition: function (x, y) {
 	}
 };
-
 
 function init() {
 	window.app = new FractalPad();

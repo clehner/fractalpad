@@ -72,7 +72,7 @@ function ToolSet(app, mouseController, container) {
 	var tools = {
 		scroll: new ScrollHoverBehavior(app.view, mouseController),
 
-		draw: {
+		draw: new DragBehavior({
 			touchedTiles: [],
 			onActivate: function () {
 				viewerEl.className = "cursor-draw";
@@ -146,9 +146,9 @@ function ToolSet(app, mouseController, container) {
 					brushSize, this.onDragInRectLast, this);
 				copySaveTiles(this.touchedTiles);
 			}
-		},
+		}),
 
-		line: {
+		line: new DragBehavior({
 			onActivate: function () {
 				colorTools.className = "";
 				viewerEl.className = "cursor-crosshair";
@@ -160,9 +160,9 @@ function ToolSet(app, mouseController, container) {
 			},
 			onDragEnd: function (e) {
 			}
-		},
+		}),
 
-		curve: {
+		curve: new DragBehavior({
 			onActivate: function () {
 				colorTools.className = "";
 				viewerEl.className = "cursor-crosshair";
@@ -174,9 +174,9 @@ function ToolSet(app, mouseController, container) {
 			},
 			onDragEnd: function (e) {
 			}
-		},
+		}),
 
-		erase: {
+		erase: new DragBehavior({
 			onActivate: function () {
 				viewerEl.className = "cursor-eraser";
 				colorTools.className = ""; //"semi-hidden";
@@ -223,9 +223,9 @@ function ToolSet(app, mouseController, container) {
 					app.queueTileSave(tile);
 				});
 			}
-		},
+		}),
 
-		eyedropper: {
+		eyedropper: new DragBehavior({
 			onActivate: function () {
 				viewerEl.className = "cursor-eyedropper";
 				colorTools.className = "";
@@ -234,15 +234,15 @@ function ToolSet(app, mouseController, container) {
 			onDragStart: function (e) {
 				this.onDrag(e);
 			},
-			onDrag: function (e) {
-				var rgba = app.view.getPixel(e._x, e._y);
+			onDrag: function (point) {
+				var rgba = app.view.getPixel(point);
 				if (rgba[3] === 0)
 					rgba = [255, 255, 255, 0];
 				else
 					rgba[3] /= 255;
 				colorPicker.setColor(rgba);
 			}
-		}
+		})
 	};
 
 	var activeToolEl;
@@ -477,35 +477,39 @@ function ColorPicker(el) {
 		update();
 	}
 
-	function drag(e) {
-		this.onDrag(e);
-	}
+	new MouseController(hueSquare).setBehavior(new DragBehavior(
+		function (point) {
+			sat = Math.max(0, Math.min(1, point.x / satValWidth));
+			val = 1 - Math.max(0, Math.min(1, point.y / satValHeight));
+			updateSatVal();
+			update();
+		}
+	));
 
-	new DragController(hueSquare, {onDragStart: drag, onDrag: function (e) {
-		sat = Math.max(0, Math.min(1, e._x / satValWidth)),
-		val = 1 - Math.max(0, Math.min(1, e._y / satValHeight)),
-		updateSatVal();
-		update();
-	}});
+	new MouseController(hueSlider).setBehavior(new DragBehavior(
+		function (point) {
+			hue = Math.max(0, Math.min(1, point.y / hueHeight));
+			updateHue();
+			update();
+		}
+	));
 
-	new DragController(hueSlider, {onDragStart: drag, onDrag: function (e) {
-		hue = Math.max(0, Math.min(1, e._y / hueHeight));
-		updateHue();
-		update();
-	}});
+	new MouseController(alphaSlider).setBehavior(new DragBehavior(
+		function (point) {
+			alpha = Math.max(0, Math.min(1, point.x / alphaWidth));
+			updateAlpha();
+			update();
+		}
+	));
 
-	new DragController(alphaSlider, {onDragStart: drag, onDrag: function (e) {
-		alpha = Math.max(0, Math.min(1, e._x / alphaWidth));
-		updateAlpha();
-		update();
-	}});
-
-	new DragController(sizeSlider, {onDragStart: drag, onDrag: function (e) {
-		size = Math.max(0, Math.min(1, e._x / sizeWidth)) *
-			(maxSize - minSize) + minSize;
-		updateSize();
-		update();
-	}});
+	new MouseController(sizeSlider).setBehavior(new DragBehavior(
+		function (point) {
+			size = Math.max(0, Math.min(1, point.x / sizeWidth)) *
+				(maxSize - minSize) + minSize;
+			updateSize();
+			update();
+		}
+	));
 
 	var colorStr = pref(storageKey);
 	if (colorStr) {

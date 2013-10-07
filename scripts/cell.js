@@ -39,7 +39,7 @@ Point.prototype = {
 	},
 
 	minus: function (point) {
-		return new Point(point.x - this.x, point.y - this.y);
+		return new Point(this.x - point.x, this.y - point.y);
 	},
 
 	relativeToRect: function (rect) {
@@ -266,11 +266,8 @@ FractalView.prototype = {
 		);
 	},
 
-	getPixel: function (x, y) {
-		var pixel = this.ctx.getImageData(x, y, 1, 1);
-		//var pixel = {data: [255, 255, 255, 255].map(function (n) {
-			//return n * Math.random();
-		//})};
+	getPixel: function (point) {
+		var pixel = this.ctx.getImageData(point.x, point.y, 1, 1);
 		var rgba = Array.prototype.slice.call(pixel.data);
 		return rgba;
 	}
@@ -656,37 +653,6 @@ FixedFractal.prototype = {
 	}
 };
 
-function MouseController(element) {
-	var behavior, point;
-
-	this.setBehavior = function (b) {
-		if (behavior == b) return;
-		if (behavior && behavior.onDeactivate) behavior.onDeactivate(b);
-		behavior = b;
-		if (b && b.onActivate) b.onActivate();
-		element.className = behavior.className || '';
-	};
-
-	this.getPoint = function () {
-		return point;
-	};
-
-	element.addEventListener("mousedown", function (e) {
-		point = new Point(e.pageX, e.pageY);
-		if (behavior && behavior.onMouseDown) behavior.onMouseDown(point, e);
-	}, false);
-
-	document.addEventListener("mousemove", function (e) {
-		point = new Point(e.pageX, e.pageY);
-		if (behavior && behavior.onMouseMove) behavior.onMouseMove(point, e);
-	}, false);
-
-	document.addEventListener("mouseup", function (e) {
-		point = new Point(e.pageX, e.pageY);
-		if (behavior && behavior.onMouseUp) behavior.onMouseUp(point, e);
-	}, false);
-}
-
 function KeyController(win) {
 	var behavior = {},
 		keyMap = 0,
@@ -743,4 +709,8 @@ KeyController.prototype = {
 };
 
 window.KeyController = KeyController;
-window.MouseController = MouseController;
+window.Fractal = Fractal;
+window.Point = Point;
+window.Rect = Rect;
+window.FractalView = FractalView;
+window.SquareRectangleFractal = SquareRectangleFractal;

@@ -1,3 +1,5 @@
+/*global Point */
+
 if (!window.console) {
 	window.console = {
 		log: function () {}
@@ -5,6 +7,14 @@ if (!window.console) {
 }
 
 // Utils
+
+function pref(key, val) {
+	if (pref.arguments.length == 1) {
+		return (window.localStorage || window.sessionStorage || 0)[key];
+	} else {
+		(window.localStorage || window.sessionStorage || 0)[key] = val;
+	}
+}
 
 var Canvases = {
 	_canvases: [],
@@ -23,93 +33,100 @@ var Canvases = {
 	}
 };
 
-function DragController(element, options) {
-	if (!element) return null;
-	if (!options) options = 0;
-	var onDragStart = options.onDragStart;
-	var onDrag = options.onDrag;
-	var onDragEnd = options.onDragEnd;
-	var context = options;
-	if (options.onActivate) options.onActivate();
+function MouseController(element) {
+	var self = this;
+	this.element = element;
+	if (!element) throw new Error("Missing element");
 
-	var lastX, lastY;
-	var offsetX, offsetY;
-	function calculateOffsets() {
-		var x = 0, y = 0;
-		for (var el = element; el; el = el.offsetParent) {
-			x += el.offsetLeft - el.scrollLeft;
-			y += el.offsetTop - el.scrollTop;
-		}
-		offsetX = x;
-		offsetY = y;
+	function point(e) {
+		return new Point(e.pageX, e.pageY);
 	}
 
-	// Add coords relative to element
-	function correctEvent(e) {
-		lastX = e._x = e.pageX - offsetX;
-		lastY = e._y = e.pageY - offsetY;
-	}
-
-	function onMouseMove(e) {
-		correctEvent(e);
-		if (onDrag) onDrag.call(context, e);
-	}
-
-	function onMouseUp(e) {
-		document.removeEventListener("mouseup", onMouseUp, false);
-		document.removeEventListener("mousemove", onMouseMove, true);
-		correctEvent(e);
-		if (onDragEnd) onDragEnd.call(context, e);
-	}
-
-	function onTouchEnd(e) {
-		if (e.touches.length > 0) return;
-		document.removeEventListener("touchend", onTouchEnd, false);
-		document.removeEventListener("touchcancel", onTouchEnd, false);
-		document.removeEventListener("touchmove", onMouseMove, true);
-		e._x = lastX;
-		e._y = lastY;
-		if (onDragEnd) onDragEnd.call(context, e);
-	}
-
-	function onMouseDown(e) {
-		if (e.touches) {
-			e.preventDefault();
-			document.addEventListener("touchmove", onMouseMove, true);
-			document.addEventListener("touchend", onTouchEnd, false);
-			document.addEventListener("touchcancel", onTouchEnd, false);
-		} else {
-			document.addEventListener("mousemove", onMouseMove, true);
-			document.addEventListener("mouseup", onMouseUp, false);
-		}
-
-		// ignore right click
-		document.addEventListener("contextmenu", onMouseUp, false);
-		calculateOffsets();
-		correctEvent(e);
-		if (onDragStart) onDragStart.call(context, e);
-	}
-	element.addEventListener("touchstart", onMouseDown, false);
-	element.addEventListener("mousedown", onMouseDown, false);
-
-	this.setBehavior = function (opt) {
-		onDragStart = opt.onDragStart;
-		onDrag = opt.onDrag;
-		onDragEnd = opt.onDragEnd;
-		if (context && context.onDeactivate) context.onDeactivate();
-		context = opt;
-		if (opt.onActivate) opt.onActivate();
-	};
+	this.onMouseDown = function (e) { self.behavior.onMouseDown(point(e), e); };
+	this.onMouseMove = function (e) { self.behavior.onMouseMove(point(e), e); };
+	this.onMouseUp = function (e) { self.behavior.onMouseUp(point(e), e); };
 }
 
-function pref(key, val) {
-	if (pref.arguments.length == 1) {
-		return (window.localStorage || window.sessionStorage || 0)[key];
+MouseController.prototype.setBehavior = function (b) {
+	var oldB = this.behavior;
+	if (oldB == b) return;
+	this.behavior = b;
+	if (oldB && oldB.onDeactivate) oldB.onDeactivate(b);
+	if (b && b.onActivate) b.onActivate(this);
+	this.updateEvent(b, oldB, this.element, "mousedown", "onMouseDown");
+	this.updateEvent(b, oldB, document, "mousemove", "onMouseMove");
+	this.updateEvent(b, oldB, document, "mouseup", "onMouseUp");
+	//element.className = behavior.className || '';
+};
+
+MouseController.prototype.updateEvent = function (a, b, el, evName, fnName) {
+	if (a && a[fnName]) {
+		if (!b || !b[fnName]) el.addEventListener(evName, this[fnName], false);
 	} else {
-		(window.localStorage || window.sessionStorage || 0)[key] = val;
+		if (b && b[fnName]) el.removeEventListener(evName, this[fnName], false);
 	}
+};
+
+function DragBehavior(opt) {
+	if (typeof opt == "function") {
+		opt = {
+			onDragStart: this.drag,
+			onDrag: opt
+		};
+	}
+	this.opt = opt;
+	this.draggingBehavior = new DraggingBehavior(opt, this);
 }
+DragBehavior.prototype.drag = function (e) {
+	this.onDrag(e);
+};
+DragBehavior.prototype.onActivate = function (controller) {
+	this.controller = controller;
+	if (this.opt.onActivate) this.opt.onActivate(controller);
+};
+DragBehavior.prototype.onMouseDown = function (point, e) {
+	this.controller.setBehavior(this.draggingBehavior);
+	this.draggingBehavior.onDragStart(point, e);
+};
+
+function DraggingBehavior(opt, defaultBehavior) {
+	this.opt = opt;
+	this.defaultBehavior = defaultBehavior;
+}
+
+DraggingBehavior.prototype.calculateOffset = function () {
+	var x = 0, y = 0;
+	for (var el = this.controller.element; el; el = el.offsetParent) {
+		x += el.offsetLeft - el.scrollLeft;
+		y += el.offsetTop - el.scrollTop;
+	}
+	this.offset = new Point(x, y);
+};
+
+DraggingBehavior.prototype.onActivate = function (controller) {
+	this.controller = controller;
+	if (this.opt.onActivate) this.opt.onActivate(controller);
+};
+DraggingBehavior.prototype.onDragStart = function (point, e) {
+	this.calculateOffset();
+	var innerPoint = point.minus(this.offset);
+	if (this.opt.onDragStart) this.opt.onDragStart(innerPoint, e);
+};
+DraggingBehavior.prototype.onMouseMove = function (point, e) {
+	var innerPoint = point.minus(this.offset);
+	if (this.opt.onDrag) this.opt.onDrag(innerPoint, e);
+};
+DraggingBehavior.prototype.onMouseUp = function (point, e) {
+	var innerPoint = point.minus(this.offset);
+	if (this.opt.onDragEnd) this.opt.onDragEnd(innerPoint, e);
+	this.controller.setBehavior(this.defaultBehavior);
+};
+DraggingBehavior.prototype.onDeactivate = function () {
+	if (this.opt.onDeactivate) this.opt.onDeactivate();
+};
 
 window.pref = pref;
 window.Canvases = Canvases;
-window.DragController = DragController;
+window.MouseController = MouseController;
+window.DragBehavior = DragBehavior;
+window.DraggingBehavior = DraggingBehavior;
