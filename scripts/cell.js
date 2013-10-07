@@ -397,7 +397,6 @@ Fractal.prototype = {
 	},
 
 	drawOuterBorder: function (ctx, innerRect) {
-		//return;
 		var rect = this.getOuterRect(innerRect);
 		ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
 	},
@@ -597,8 +596,8 @@ FixedFractal.prototype = {
 	rect: null,
 	
 	draw: function (view, ctx, viewport) {
-		this.fractal.drawOuterBorder(ctx, this.rect);
 		this.fractal.drawAll(view, ctx, this.rect, viewport);
+		this.fractal.drawOuterBorder(ctx, this.rect);
 	},
 
 	getChildren: function () {
