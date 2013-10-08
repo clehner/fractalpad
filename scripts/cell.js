@@ -1,4 +1,4 @@
-/*global BinaryId */
+/*global TreeID */
 
 if (!Function.prototype.bind) {
 	Function.prototype.bind = function (context) {
@@ -93,10 +93,10 @@ Rect.prototype = {
 	},
 
 	containsRect: function (rect) {
-		return this.x < rect.x &&
-			this.y < rect.y &&
-			this.x + this.w > rect.x + rect.w &&
-			this.y + this.h > rect.y + rect.h;
+		return this.x <= rect.x &&
+			this.y <= rect.y &&
+			this.x + this.w >= rect.x + rect.w &&
+			this.y + this.h >= rect.y + rect.h;
 	},
 
 	intersects: function (rect) {
@@ -149,13 +149,13 @@ function debugRect2(rect, msg) {
 	if (msg) debuggerRect.textContent = msg;
 	if (!debuggerRect.parentNode) document.body.appendChild(debuggerRect);
 }
-*/
 
 function FractalView(canvas, initialBase, viewport) {
 	this.canvas = canvas;
 	this.base = initialBase;
 	this.setViewport(viewport || new Rect(0, 0, 0, 0));
 	this.draw();
+	this.setBase(initialBase);
 
 }
 FractalView.prototype = {
@@ -180,13 +180,12 @@ FractalView.prototype = {
 	},
 
 	setBase: function (fixedFractal) {
-		this.base = fixedFractal;
-		this._recalculateBase();
+		this.base = this.recalculateBase(fixedFractal);
 		this.redraw();
 	},
 
 	// The base cell should be the closest ancestor of all visible cells.
-	_recalculateBase: function () {
+	recalculateBase: function (base) {
 		var viewport = this.viewport;
 		var i = 0;
 
@@ -201,42 +200,45 @@ FractalView.prototype = {
 		// walk up
 		// If the base does not cover the viewport, make the parent base.
 		// todo: make this work on the edges of the root cell
-		while (this.base.hasParent() && !containsViewport(this.base)) {
+		while (!containsViewport(base)) {
 			//!isOuterRectVisible(this.base)) 
 			if (i++ > 100) return;
-			this.base = this.base.getParent();
+			base = base.getParent();
 			//console.log('walk up');
 		}
+		//console.log('walked up', i);
 
-		var children = this.base.getChildren();
+		var children = base.getChildren();
 		var visibleChild = children.first(isOuterRectVisible);
 
 		// If the inner rect of the base cell is not visible in the viewport,
 		// then at least one of its child cells is also not visible.
 		// So the visible child, if there is one, should be made the base cell.
 		// Narrow down.
-		while (!this.base.rect.intersects(viewport)) {
+		//i = 0;
+		while (!base.rect.intersects(viewport)) {
 			if (visibleChild) {
 				//console.log("setting base to visible child");
 				if (i++ > 100) return;
-				this.base = visibleChild;
+				base = visibleChild;
 			} else {
 				// todo: prevent this from happening.
 				console.log('Lost!');
 			}
 
-			children = this.base.getChildren();
+			children = base.getChildren();
 			visibleChild = children.first(isOuterRectVisible);
 		}
+		//console.log('walked down', i);
 
 		// If the child cells are not visible but the base cell is, then
 		// we are zoomed completely into the base cell and it is covering the
 		// viewport.
 		if (!visibleChild) {
-			// todo: prevent this from happening.
 			console.log('Too deep.');
 		}
 
+		return base;
 		//debugRect2(this.base.rect);
 	},
 
@@ -281,9 +283,11 @@ function Fractal(parent, j) {
 		// j is this.parent.children.indexOf(this)
 		this.i = (parent.i + 1) % this.numChildren;
 		this.j = j;
-		this.id = BinaryId.child(parent.id, j);
+		this.idGenerator = parent.idGenerator;
+		this.id = this.idGenerator.child(parent.id, j);
 	} else {
-		this.id = BinaryId.start(parent);
+		this.idGenerator = new TreeID(this.numChildren, this.idPrefix);
+		this.id = this.idGenerator.start();
 	}
 }
 Fractal.prototype = {
@@ -297,6 +301,7 @@ Fractal.prototype = {
 	numChildren: 0,
 	id: "",
 	imageUrl: "fractal/%.png",
+	idPrefix: "",
 
 	getChildren: function () {
 		if (this.children) return this.children;
@@ -310,6 +315,12 @@ Fractal.prototype = {
 	},
 
 	getParent: function () {
+		if (!this.parent) {
+			this.parent = new this.constructor();
+			this.parent.i = (this.numChildren + this.i - 1) % this.numChildren;
+			// todo: allow j to alternate for some fractal types
+			this.parent.j = this.i ^ this.j;
+		}
 		return this.parent;
 	},
 
@@ -321,8 +332,7 @@ Fractal.prototype = {
 	},
 
 	getParentRect: function (myRect) {
-		if (!this.parent) return;
-		var transformation = this.childRects[this.parent.i][this.j];
+		var transformation = this.childRects[this.getParent().i][this.j];
 		return myRect.transform(transformation.inverse());
 	},
 
@@ -364,7 +374,7 @@ Fractal.prototype = {
 		} else if (!this.image && // don't load more than once
 			(drawingStatus != "loading" || (s > 256))
 		) {
-			this.loadImage(view);
+			//this.loadImage(view);
 			return "loading";
 		}
 
@@ -393,11 +403,6 @@ Fractal.prototype = {
 	},
 
 	drawBorder: function (ctx, rect) {
-		ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
-	},
-
-	drawOuterBorder: function (ctx, innerRect) {
-		var rect = this.getOuterRect(innerRect);
 		ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
 	},
 
@@ -444,6 +449,7 @@ SquareRectangleFractal.prototype = {
 	],
 	numChildren: 2,
 	zoomRatio: 3/4,
+	idPrefix: "a",
 
 	outerRects: [
 		new Rect(-0.5, 0, 2, 1), // horizontal
@@ -597,7 +603,6 @@ FixedFractal.prototype = {
 	
 	draw: function (view, ctx, viewport) {
 		this.fractal.drawAll(view, ctx, this.rect, viewport);
-		this.fractal.drawOuterBorder(ctx, this.rect);
 	},
 
 	getChildren: function () {

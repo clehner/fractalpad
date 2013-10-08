@@ -1,20 +1,34 @@
 (function () {
 
-var digits =
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-";
+	var seperator = "_",
+		digits =
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-";
 
-this.BinaryId = {
-	start: function (prefix) {
-		return prefix + digits.charAt(1);
-	},
+	function TreeID(branchingFactor, prefix) {
+		this.prefix = prefix;
+		this.b = branchingFactor;
+	}
+	this.TreeID = TreeID;
 
-	child: function (parentId, me) {
+	TreeID.prototype.start = function () {
+		var one = digits.charAt(1);
+		return [this.prefix, one, one].join(seperator);
+	};
+
+	TreeID.prototype.child = function (parentId, me) {
+		var i = parentId.indexOf(seperator);
+		if (i == -1) {
+			throw new Error("Invalid tree ID");
+		}
+		var ancestors = parentId.substr(0, i);
+		var descendants = parentId.substr(i+1);
+
 		var end = parentId.length - 1;
 		var last = parentId.charAt(end);
 		var rest = parentId.substr(0, end);
 
 		var lastCode = digits.indexOf(last);
-		if (lastCode === -1 || lastCode === 0) {
+		if (lastCode <= 0) {
 			rest += last;
 			lastCode = 1;
 		}
@@ -26,9 +40,9 @@ this.BinaryId = {
 		} else {
 			return rest + digits.charAt(val);
 		}
-	},
+	};
 
-	parent: function (childId) {
+	TreeID.prototype.parent = function (childId) {
 		var end, last, rest, code;
 		end = childId.length - 1;
 		last = childId.charAt(end);
@@ -50,8 +64,7 @@ this.BinaryId = {
 			parent += digits.charAt(code >> 1);
 		}
 		return [parent, sub];
-	}
-};
+	};
 
 }).call(this);
-if (this.exports) this.exports = this.BinaryId;
+if (this.exports) this.exports = this.TreeId;
