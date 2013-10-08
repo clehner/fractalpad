@@ -29,9 +29,9 @@ function FractalPad() {
 	// Modes
 	var mouse = new MouseController(canvas);
 	var toolset = new ToolSet(this, mouse, document.getElementById("tools"));
-	toolset.selectTool(window.sessionStorage.defaultTool || "scroll");
+	toolset.selectTool(sessionStorage.defaultTool || "scroll");
 	toolset.onSelectTool = function (toolName) {
-		window.sessionStorage.defaultTool = toolName;
+		sessionStorage.defaultTool = toolName;
 	};
 }
 

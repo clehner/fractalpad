@@ -9,10 +9,11 @@ if (!window.console) {
 // Utils
 
 function pref(key, val) {
+	var store = window.localStorage || window.sessionStorage || pref;
 	if (pref.arguments.length == 1) {
-		return (window.localStorage || window.sessionStorage || 0)[key];
+		return store[key];
 	} else {
-		(window.localStorage || window.sessionStorage || 0)[key] = val;
+		store[key] = val;
 	}
 }
 

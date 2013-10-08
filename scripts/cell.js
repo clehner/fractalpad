@@ -31,9 +31,6 @@ function Point(x, y) {
 	this.y = y;
 }
 Point.prototype = {
-	x: NaN,
-	y: NaN,
-
 	toString: function () {
 		return "[Point " + this.x + "," + this.y + "]";
 	},
@@ -56,11 +53,6 @@ function Rect(x, y, w, h) {
 	this.h = h;
 }
 Rect.prototype = {
-	x: NaN,
-	y: NaN,
-	w: NaN,
-	h: NaN,
-
 	toString: function () {
 		return "[Rect x:" + this.x + " y:" + this.y +
 			" w:" + this.w + " h:" + this.h + "]";
